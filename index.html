@@ -130,7 +130,7 @@ var store={
   set:function(k,v){var s=JSON.stringify(v);try{localStorage.setItem(k,s);}catch(e){}mem[k]=s;}
 };
 var state={night:null,history:[],roster:store.get('pn_roster')||ROSTER_DEFAULT,lastClosed:store.get('pn_lastClosed'),me:store.get('pn_me')||'',view:'table',uid:null,gk:store.get('pn_gk'),online:false,loaded:false};
-var db=null,liveRef=null,histRef=null;
+var db=null,liveRef=null,histRef=null;var cashTimer=null,pendingUp={};
 
 function money(n){var neg=n<0;n=Math.abs(n);var s=(Math.round(n*100)/100).toString();if(s.indexOf('.')>-1)s=s.replace(/\.?0+$/,'');return (neg?'-':'')+'$'+s;}
 function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
@@ -162,7 +162,7 @@ function startCloud(){
 function attach(){
   if(liveRef)return;
   liveRef=db.ref(cloudPath('live'));histRef=db.ref(cloudPath('history'));
-  liveRef.on('value',function(s){state.night=normNight(s.val());state.loaded=true;if(state.night&&state.lastClosed){state.lastClosed=null;store.set('pn_lastClosed',null);}render();},function(e){setConn('No access to the live table: '+e.code+'. The database rules may not be set yet.',true);});
+  liveRef.on('value',function(s){state.night=normNight(s.val());if(state.night){Object.keys(pendingUp).forEach(function(k){var m=k.match(/^players\/(\d+)\/(cashout|adj)$/);if(m&&state.night.players[m[1]])state.night.players[m[1]][m[2]]=pendingUp[k];});}state.loaded=true;if(state.night&&state.lastClosed){state.lastClosed=null;store.set('pn_lastClosed',null);}render();},function(e){setConn('No access to the live table: '+e.code+'. The database rules may not be set yet.',true);});
   histRef.on('value',function(s){var v=s.val()||{};state.history=Object.keys(v).map(function(k){return normNight(v[k]);});if(state._seed&&!state._seeded){seedCloud();}render();},function(e){setConn('No access to history: '+e.code+'.',true);});
 }
 function seedCloud(){var have={};state.history.forEach(function(x){have[String(x.id)]=1;});var upd={};var c=0;state._seed.forEach(function(s){if(!have[s.id]){upd[s.id]=s;c++;}});state._seeded=true;if(c)histRef.update(upd).then(function(){toast('Loaded '+c+' tables from the sheet');});}
@@ -327,7 +327,7 @@ function editNight(){var n=state.night;
   openSheet('<h3>Edit the table</h3><label>Date</label><input type="date" id="eDate" value="'+n.date+'"><label>Host</label><input type="text" id="eHost" value="'+esc(n.host)+'"><label>Munim</label><input type="text" id="eMunim" value="'+esc(n.munim)+'"><label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="eBuy" value="'+n.buyin+'"><div class="row" style="margin-top:12px"><button class="btn" id="eOk">Save</button><button class="btn sec" id="closeSheet">Cancel</button></div><div style="margin-top:14px"><button class="btn warn" id="eDel">Delete this table</button></div>');
   document.getElementById('eOk').onclick=function(){n.date=document.getElementById('eDate').value||n.date;n.host=document.getElementById('eHost').value.trim();n.munim=document.getElementById('eMunim').value.trim()||n.munim;n.buyin=num(document.getElementById('eBuy').value)||n.buyin;writeLive();closeSheet();};
   document.getElementById('eDel').onclick=function(){if(confirm('Delete this table for everyone, with all its buy-ins?')){liveRef.remove();closeSheet();}};}
-function closeNight(){var n=state.night,t=totals(n),pending=n.players.length-t.cashed;
+function closeNight(){clearTimeout(cashTimer);flushPending();var n=state.night,t=totals(n),pending=n.players.length-t.cashed;
   if(pending&&!confirm(pending+' player'+(pending>1?'s have':' has')+' no chips entered. They will count as $0. Close anyway?'))return;
   n.players.forEach(function(p){if(p.cashout==null)p.cashout=0;});delete n.phase;delete n.requests;delete n.munimUid;
   var id=n.id;histRef.child(id).set(JSON.parse(JSON.stringify(n))).then(function(){state.lastClosed=id;store.set('pn_lastClosed',id);return liveRef.remove();}).then(function(){toast('Table closed and saved');});}
@@ -378,12 +378,13 @@ function endPress(){clearTimeout(pressTimer);}
 main.addEventListener('touchstart',startPress,{passive:true});main.addEventListener('touchend',endPress);main.addEventListener('touchmove',endPress,{passive:true});main.addEventListener('touchcancel',endPress);
 main.addEventListener('mousedown',startPress);main.addEventListener('mouseup',endPress);main.addEventListener('mouseleave',endPress);
 main.addEventListener('contextmenu',function(e){if(e.target.closest('[data-buy]'))e.preventDefault();});
-var cashTimer=null;
+function flushPending(){var up=pendingUp;pendingUp={};if(Object.keys(up).length)liveUpdate(up);}
 main.addEventListener('input',function(e){var t=e.target,n=state.night;if(!n||!isMunim())return;var i;
-  if(t.hasAttribute('data-cash')){i=num(t.getAttribute('data-cash'));n.players[i].cashout=t.value===''?null:num(t.value);}
-  else if(t.hasAttribute('data-adj')){i=num(t.getAttribute('data-adj'));n.players[i].adj=t.value===''?0:num(t.value);}
+  if(t.hasAttribute('data-cash')){i=num(t.getAttribute('data-cash'));n.players[i].cashout=t.value===''?null:num(t.value);pendingUp['players/'+i+'/cashout']=n.players[i].cashout;}
+  else if(t.hasAttribute('data-adj')){i=num(t.getAttribute('data-adj'));n.players[i].adj=t.value===''?0:num(t.value);pendingUp['players/'+i+'/adj']=n.players[i].adj;}
   else return;
-  refreshCashNets();var up={};up['players/'+i+'/cashout']=n.players[i].cashout;up['players/'+i+'/adj']=n.players[i].adj;clearTimeout(cashTimer);cashTimer=setTimeout(function(){liveUpdate(up);},250);});
+  refreshCashNets();clearTimeout(cashTimer);cashTimer=setTimeout(flushPending,300);});
+main.addEventListener('focusout',function(e){if(e.target.hasAttribute&&(e.target.hasAttribute('data-cash')||e.target.hasAttribute('data-adj'))){clearTimeout(cashTimer);flushPending();}});
 function refreshCashNets(){var n=state.night;if(!n)return;Array.prototype.forEach.call(document.querySelectorAll('.cashrow'),function(row,i){if(!n.players[i])return;var net=pNet(n.players[i]);var el=row.querySelector('.net');if(el){el.textContent=net==null?'—':money(net);el.className='net '+(net==null?'':(net>=0?'pos':'neg'));}});
   var ob=document.querySelector('.balance');if(ob)ob.outerHTML=balanceBox(n);header();}
 
