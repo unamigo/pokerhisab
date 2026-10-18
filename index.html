@@ -7,16 +7,13 @@
 <meta name="theme-color" content="#0f3d2e">
 <title>Poker Hisab</title>
 <style>
-  :root{
-    --felt:#0f3d2e; --felt2:#155a43; --paper:#f7f6f1; --ink:#1a1a1a; --mute:#6b6b6b;
-    --line:#dcdad2; --win:#1b7f3b; --lose:#b3261e; --gold:#d9a441; --card:#ffffff;
-  }
+  :root{--felt:#0f3d2e;--paper:#f7f6f1;--ink:#1a1a1a;--mute:#6b6b6b;--line:#dcdad2;--win:#1b7f3b;--lose:#b3261e;--card:#fff}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px}
   body{min-height:100vh;display:flex;flex-direction:column}
   header{background:var(--felt);color:#fff;padding:14px 16px 12px;padding-top:calc(14px + env(safe-area-inset-top));position:sticky;top:0;z-index:5}
   header .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-  header h1{font-size:15px;font-weight:600;margin:0;opacity:.85;letter-spacing:.02em}
+  header h1{font-size:15px;font-weight:600;margin:0;opacity:.85}
   header .sub{font-size:13px;opacity:.75}
   .total{margin-top:6px;display:flex;justify-content:space-between;align-items:flex-end}
   .total .label{font-size:13px;opacity:.8}
@@ -24,15 +21,16 @@
   .total .small{font-size:13px;opacity:.8;text-align:right}
   main{flex:1;padding:14px 14px 96px;max-width:560px;width:100%;margin:0 auto}
   nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:5;padding-bottom:env(safe-area-inset-bottom)}
-  nav button{flex:1;border:0;background:none;padding:10px 4px 8px;font-size:12px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
+  nav button{flex:1;border:0;background:none;padding:10px 4px 8px;font-size:13px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
   nav button .ic{font-size:20px;line-height:1}
   nav button.on{color:var(--felt)}
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
   h2{font-size:18px;margin:4px 0 10px;font-weight:700}
+  h3{font-size:16px;margin:0 0 8px}
   p{margin:6px 0;line-height:1.4}
   .hint{color:var(--mute);font-size:14px}
   label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
-  input[type=text],input[type=number],input[type=date],select{width:100%;font-size:18px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  input[type=text],input[type=number],input[type=date],input[type=password]{width:100%;font-size:18px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
   input[type=number]{-moz-appearance:textfield}
   .btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:14px 16px;font-size:17px;font-weight:700;cursor:pointer;background:var(--felt);color:#fff;width:100%}
   .btn.sec{background:#e9e8e1;color:var(--ink)}
@@ -40,17 +38,17 @@
   .btn.sm{width:auto;padding:10px 14px;font-size:15px;border-radius:10px}
   .btn:disabled{opacity:.4}
   .row{display:flex;gap:10px;align-items:center}
-  .row > *{flex:1}
+  .row>*{flex:1}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
   .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;font-size:16px;font-weight:600;cursor:pointer}
   .chip.on{background:var(--felt);color:#fff;border-color:var(--felt)}
-  /* player rows on the table */
   .prow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
   .prow:last-child{border-bottom:0}
   .prow .name{flex:1;min-width:0}
   .prow .name b{font-size:18px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .prow .name span{font-size:13px;color:var(--mute)}
   .prow .cnt{font-size:22px;font-weight:700;min-width:34px;text-align:center}
+  .rank{font-size:14px;color:var(--mute);min-width:24px}
   .plus{width:56px;height:56px;border-radius:14px;border:0;background:var(--felt);color:#fff;font-size:30px;font-weight:700;cursor:pointer;flex:none}
   .minus{width:44px;height:56px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--mute);font-size:22px;cursor:pointer;flex:none}
   .net{font-weight:700;font-size:18px;min-width:84px;text-align:right}
@@ -78,44 +76,39 @@
   .empty{text-align:center;color:var(--mute);padding:30px 10px}
   .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:8}
   .sheet.show{display:flex}
-  .sheet .box{background:#fff;width:100%;max-width:560px;margin:0 auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
-  .sheet .box h3{margin:0 0 8px;font-size:18px}
+  .sheet .box{background:#fff;width:100%;max-width:560px;margin:0 auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+  .sheet .box h3{font-size:18px}
   .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
   .quick button{padding:14px 0;font-size:18px;font-weight:700;border-radius:10px;border:1px solid var(--line);background:#fff}
-  .sticky-note{font-size:13px;color:var(--mute);margin-top:8px}
+  .note{font-size:13px;color:var(--mute);margin-top:8px}
   .lock{min-height:70vh;display:flex;align-items:center;justify-content:center}
   .lock .card{width:100%;max-width:380px;text-align:center}
-  .lock input{text-align:center;font-size:22px;letter-spacing:.05em}
+  .lock input{text-align:center;font-size:22px}
   .lock .err{color:var(--lose);font-size:14px;min-height:20px;margin-top:8px}
+  .season-toggle{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .season-toggle span{font-size:13px;color:var(--mute)}
+  details summary{list-style:none;cursor:pointer}
+  details summary::-webkit-details-marker{display:none}
 </style>
 </head>
 <body>
 <header>
-  <div class="top"><h1 id="hTitle">Poker Hisab</h1><div class="sub" id="hSub"></div></div>
+  <div class="top"><h1>Poker Hisab</h1><div class="sub" id="hSub"></div></div>
   <div class="total" id="hTotal" style="display:none">
-    <div><div class="label">On the table</div><div class="amt" id="hAmt">$0</div></div>
+    <div><div class="label" id="hLabel">On the table</div><div class="amt" id="hAmt">$0</div></div>
     <div class="small" id="hSmall"></div>
   </div>
 </header>
-
 <main id="main"></main>
-
 <nav id="nav">
-  <button data-v="start"><span class="ic">♠️</span>Table</button>
-  <button data-v="table"><span class="ic">💵</span>Buy-ins</button>
-  <button data-v="cash"><span class="ic">🧮</span>Cash out</button>
-  <button data-v="settle"><span class="ic">✅</span>Settle</button>
-  <button data-v="season"><span class="ic">🏆</span>Season</button>
+  <button data-v="table"><span class="ic">♠️</span>Current Table</button>
   <button data-v="hist"><span class="ic">📒</span>History</button>
 </nav>
-
 <div class="sheet" id="sheet"><div class="box" id="sheetBox"></div></div>
 <div class="toast" id="toast"></div>
-
 <script>
 (function(){
 'use strict';
-// ---------- storage (falls back to memory if the browser blocks it) ----------
 var mem={};
 var store={
   get:function(k){try{var v=localStorage.getItem(k);return v==null?null:JSON.parse(v);}catch(e){return mem[k]==null?null:JSON.parse(mem[k]);}},
@@ -123,50 +116,43 @@ var store={
   ok:function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return true;}catch(e){return false;}}
 };
 var LOCK={"salt":"W8s2svXPqvsVCg6WrUBqQA==","iv":"g9b6VzZY3uJrDBIT","data":"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"};
-var SEED_HISTORY=[];
-var ROSTER_DEFAULT=["Ankur","Abbas","Aunty Ji","Uncle Ji","Birju","Dev","Hemant","Madhu","Mahesh","Mayank","Mehul","Naveen","Raj","Sonit","Sunny","Aaron","Gagan","Gaurav","Jenny","Kailash","Mohit","Naina","Ojas","Prerna"];
-
-var state={
-  night: store.get('pn_night'),          // current open night or null
-  history: store.get('pn_history')||[],  // closed nights
-  roster: store.get('pn_roster')||ROSTER_DEFAULT,
-  view: 'start'
-};
-function save(){store.set('pn_night',state.night);store.set('pn_history',state.history);store.set('pn_roster',state.roster);}
-function money(n){var neg=n<0;n=Math.abs(n);var s=(Math.round(n*100)/100).toString();if(s.indexOf('.')>-1){s=s.replace(/\.?0+$/,'');}return (neg?'-':'')+'$'+s;}
+var ROSTER_DEFAULT=["Ankur", "Abbas", "Aunty Ji", "Uncle Ji", "Birju", "Dev", "Hemant", "Madhu", "Mahesh", "Mayank", "Mehul", "Naveen", "Raj", "Sonit", "Sunny", "Aaron", "Gagan", "Gaurav", "Jenny", "Kailash", "Mohit", "Naina", "Ojas", "Prerna"];
+var state={night:store.get('pn_night'),history:store.get('pn_history')||[],roster:store.get('pn_roster')||ROSTER_DEFAULT,lastClosed:store.get('pn_lastClosed'),view:'table'};
+function save(){store.set('pn_night',state.night);store.set('pn_history',state.history);store.set('pn_roster',state.roster);store.set('pn_lastClosed',state.lastClosed||null);}
+function money(n){var neg=n<0;n=Math.abs(n);var s=(Math.round(n*100)/100).toString();if(s.indexOf('.')>-1)s=s.replace(/\.?0+$/,'');return (neg?'-':'')+'$'+s;}
 function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
 function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function prettyDate(iso){if(!iso)return'';var p=iso.split('-');var d=new Date(p[0],p[1]-1,p[2]);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+function prettyDate(iso){if(!iso)return'';var p=iso.split('-');return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
 function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},1600);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-
-// ---------- calculations (same as the sheet) ----------
 function pBuyin(p){return p.buyins.reduce(function(a,b){return a+b;},0);}
 function pNet(p){if(p.cashout==null)return null;return p.cashout-pBuyin(p)-num(p.adj);}
 function totals(n){var t={buy:0,cash:0,adj:0,count:0,cashed:0};n.players.forEach(function(p){t.buy+=pBuyin(p);t.count+=p.buyins.length;t.adj+=num(p.adj);if(p.cashout!=null){t.cash+=p.cashout;t.cashed++;}});return t;}
+function findHist(id){var r=null;state.history.forEach(function(x){if(String(x.id)===String(id))r=x;});return r;}
 
-// ---------- header ----------
 function header(){
   var n=state.night,T=document.getElementById('hTotal');
-  if(!n){document.getElementById('hSub').textContent='';T.style.display='none';return;}
+  if(!n||state.view!=='table'){document.getElementById('hSub').textContent='';T.style.display='none';return;}
   var t=totals(n);
   document.getElementById('hSub').textContent=prettyDate(n.date)+(n.host?' · '+n.host:'');
   T.style.display='flex';
+  document.getElementById('hLabel').textContent=n.phase==='cashout'?'Buy-ins total':'On the table';
   document.getElementById('hAmt').textContent=money(t.buy);
-  document.getElementById('hSmall').innerHTML=t.count+' buy-ins · '+n.players.length+' players<br>'+(t.cashed?('cashed out '+money(t.cash)):'');
+  document.getElementById('hSmall').innerHTML=t.count+' buy-ins · '+n.players.length+' players'+(t.cashed?'<br>chips out '+money(t.cash):'');
 }
 
-// ---------- views ----------
 var views={};
-views.start=function(){
+views.table=function(){
   var n=state.night;
-  if(n){
-    return '<div class="card"><h2>The table is open</h2><p>'+esc(prettyDate(n.date))+(n.host?' at '+esc(n.host)+"'s":'')+'. Standard buy-in '+money(n.buyin)+'. '+n.players.length+' players.</p>'+
-    '<div class="row" style="margin-top:10px"><button class="btn" data-go="table">Go to buy-ins</button></div>'+
-    '<div class="row" style="margin-top:10px"><button class="btn sec" data-act="addPlayers">Add players</button><button class="btn sec" data-act="editNight">Edit table</button></div>'+
-    '<div class="row" style="margin-top:10px"><button class="btn warn" data-act="closeNight">Close the table and save to history</button></div>'+
-    '<p class="sticky-note">Close the table when everyone has cashed out. It moves to History and a new table can open.</p></div>';
+  if(!n){
+    var last=state.lastClosed&&findHist(state.lastClosed);
+    if(last)return finalCard(last,true)+'<div class="card"><button class="btn" data-act="newTable">Open a new table</button></div>';
+    return openForm();
   }
+  if(n.phase==='cashout')return cashoutScreen(n);
+  return buyinScreen(n);
+};
+function openForm(){
   var sel=state._sel||{};
   var chips=state.roster.map(function(r){return '<span class="chip'+(sel[r]?' on':'')+'" data-chip="'+esc(r)+'">'+esc(r)+'</span>';}).join('');
   return '<div class="card"><h2>Open a table</h2>'+
@@ -176,238 +162,172 @@ views.start=function(){
   '<label>Tap who is at the table</label><div class="chips">'+chips+'</div>'+
   '<div class="row" style="margin-top:12px"><input type="text" id="fNew" placeholder="Add a new name"><button class="btn sm sec" data-act="addName" style="flex:0 0 auto">Add</button></div>'+
   '<div style="margin-top:14px"><button class="btn" data-act="startNight">Open the table</button></div>'+
-  (store.ok()?'':'<p class="sticky-note">This browser is not keeping data between visits. Export before you close the page.</p>')+
-  '</div>';
-};
-views.table=function(){
-  var n=state.night;if(!n)return noNight();
+  (store.ok()?'':'<p class="note">This browser is not keeping data between visits. Copy the results before you close the page.</p>')+'</div>';
+}
+function buyinScreen(n){
   if(!n.players.length)return '<div class="card"><div class="empty">Nobody at the table yet.</div><button class="btn sec" data-act="addPlayers">Add players</button></div>';
-  var rows=n.players.map(function(p,i){
-    var b=pBuyin(p);var odd=p.buyins.some(function(x){return x!==n.buyin;});
-    return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+money(b)+(odd?' (custom amounts)':'')+'</span></div>'+
-    '<div class="cnt">'+p.buyins.length+'</div>'+
-    '<button class="minus" data-undo="'+i+'" title="Remove last buy-in" '+(p.buyins.length?'':'disabled')+'>−</button>'+
-    '<button class="plus" data-buy="'+i+'">+</button></div>';
-  }).join('');
-  return '<div class="card"><h2>Buy-ins</h2><p class="hint">Tap + for one buy-in of '+money(n.buyin)+'. Press and hold + for a different amount. − removes the last one.</p>'+rows+'</div>'+
-  '<div class="row"><button class="btn sec" data-act="addPlayers">Add player</button><button class="btn sec" data-act="undoLast" '+(n.log&&n.log.length?'':'disabled')+'>Undo last</button></div>';
-};
-views.cash=function(){
-  var n=state.night;if(!n)return noNight();
-  if(!n.players.length)return '<div class="card"><div class="empty">Nobody at the table yet.</div></div>';
+  var rows=n.players.map(function(p,i){var b=pBuyin(p);var odd=p.buyins.some(function(x){return x!==n.buyin;});
+    return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+money(b)+(odd?' (custom amounts)':'')+'</span></div><div class="cnt">'+p.buyins.length+'</div><button class="minus" data-undo="'+i+'" '+(p.buyins.length?'':'disabled')+'>−</button><button class="plus" data-buy="'+i+'">+</button></div>';}).join('');
+  return '<div class="card"><h2>Buy-ins</h2><p class="hint">Tap + for one buy-in of '+money(n.buyin)+'. Press and hold + for another amount. − takes the last one back.</p>'+rows+'</div>'+
+  '<div class="row" style="margin-bottom:12px"><button class="btn sec" data-act="addPlayers">Add player</button><button class="btn sec" data-act="editNight">Edit table</button></div>'+
+  '<button class="btn" data-act="gameDone">Game done, enter chips</button>';
+}
+function cashoutScreen(n){
   var t=totals(n);
-  var rows=n.players.map(function(p,i){
-    var net=pNet(p);
-    return '<div class="cashrow"><div class="nm"><b>'+esc(p.name)+'</b><span>in '+money(pBuyin(p))+'</span></div>'+
-    '<input type="number" inputmode="decimal" placeholder="chips" data-cash="'+i+'" value="'+(p.cashout==null?'':p.cashout)+'">'+
-    '<input type="number" inputmode="decimal" placeholder="0" data-adj="'+i+'" value="'+(p.adj?p.adj:'')+'">'+
-    '<div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';
-  }).join('');
-  var bal='';
-  if(t.cashed===0)bal='<div class="balance wait">Enter end chips to see the balance.</div>';
-  else{
-    var diff=Math.round((t.cash-t.buy)*100)/100;
-    var pending=n.players.length-t.cashed;
-    if(pending>0)bal='<div class="balance wait">'+pending+' player'+(pending>1?'s':'')+' still to cash out. So far '+money(t.cash)+' out of '+money(t.buy)+'.</div>';
-    else if(Math.abs(diff)<0.005)bal='<div class="balance ok">Balances. '+money(t.cash)+' out, '+money(t.buy)+' in.</div>';
-    else bal='<div class="balance bad">Off by '+money(diff)+'. Chips out '+money(t.cash)+', buy-ins '+money(t.buy)+'. Recount before anyone leaves.</div>';
-  }
-  return '<div class="card"><h2>Cash out</h2><p class="hint">End chips in dollars. Penalty is a late fee or any adjustment; it is taken off the player\'s net.</p>'+
-  '<div class="colhead"><div>Player</div><div>End chips</div><div>Penalty</div><div>Net</div></div>'+rows+bal+'</div>';
-};
-views.settle=function(){
-  var n=state.night;if(!n)return noNight();
+  var rows=n.players.map(function(p,i){var net=pNet(p);
+    return '<div class="cashrow"><div class="nm"><b>'+esc(p.name)+'</b><span>in '+money(pBuyin(p))+'</span></div><input type="number" inputmode="decimal" placeholder="chips" data-cash="'+i+'" value="'+(p.cashout==null?'':p.cashout)+'"><input type="number" inputmode="decimal" placeholder="0" data-adj="'+i+'" value="'+(p.adj?p.adj:'')+'"><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';}).join('');
+  return '<div class="card"><h2>Game done</h2><p class="hint">Type each player\'s end chips in dollars. Penalty is a late fee or any adjustment; it comes off that player\'s result.</p><div class="colhead"><div>Player</div><div>End chips</div><div>Penalty</div><div>Net</div></div>'+rows+balanceBox(n)+'</div>'+
+  '<div class="row" style="margin-bottom:12px"><button class="btn sec" data-act="backToBuyins">Back to buy-ins</button></div>'+
+  '<button class="btn" data-act="closeNight">Show final balances</button>';
+}
+function balanceBox(n){
+  var t=totals(n);
+  if(t.cashed===0)return '<div class="balance wait">Enter end chips to see the balance.</div>';
+  var diff=Math.round((t.cash-t.buy)*100)/100,pending=n.players.length-t.cashed;
+  if(pending>0)return '<div class="balance wait">'+pending+' player'+(pending>1?'s':'')+' still to enter. So far '+money(t.cash)+' out of '+money(t.buy)+'.</div>';
+  if(Math.abs(diff)<0.005)return '<div class="balance ok">Balances. '+money(t.cash)+' out, '+money(t.buy)+' in.</div>';
+  return '<div class="balance bad">Off by '+money(diff)+'. Chips out '+money(t.cash)+', buy-ins '+money(t.buy)+'. Recount before anyone leaves.</div>';
+}
+function finalCard(n,withTicks){
+  var t=totals(n);var diff=Math.round((t.cash-t.buy)*100)/100;
   var ps=n.players.slice().sort(function(a,b){return (pNet(b)==null?-1e9:pNet(b))-(pNet(a)==null?-1e9:pNet(a));});
-  var rows=ps.map(function(p){
-    var i=n.players.indexOf(p);var net=pNet(p);
-    return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+p.buyins.length+' buy-in'+(p.buyins.length==1?'':'s')+' · '+money(pBuyin(p))+(p.cashout==null?'':' · out '+money(p.cashout))+(num(p.adj)?' · penalty '+money(num(p.adj)):'')+'</span></div>'+
-    '<div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div>'+
-    '<button class="tick'+(p.settled?' on':'')+'" data-settle="'+i+'" title="Settled">'+(p.settled?'✓':'')+'</button></div>';
-  }).join('');
-  var t=totals(n);var done=n.players.filter(function(p){return p.settled;}).length;
-  return '<div class="card"><h2>Settle up</h2><p class="hint">Sorted by net. Tap the box when a player has paid or been paid. '+done+' of '+n.players.length+' settled.</p>'+rows+'</div>'+
-  '<div class="card"><p><b>Totals.</b> In '+money(t.buy)+' · out '+money(t.cash)+' · penalties '+money(t.adj)+'</p>'+
-  '<div class="row"><button class="btn sec" data-act="export">Copy for the sheet</button><button class="btn sec" data-act="share">Share summary</button></div></div>';
-};
-views.season=function(){
-  var all=state.history.slice();
-  if(state.night&&totals(state.night).cashed>0)all.push(state.night);
-  var years={};all.forEach(function(n){years[(n.date||'').slice(0,4)]=1;});
-  var ylist=Object.keys(years).sort().reverse();
-  var y=state._year||ylist[0]||'';
-  var tot={},games={},wins={},best={},last='';
-  all.forEach(function(n){if((n.date||'').slice(0,4)!==y)return;if(n.date>last)last=n.date;n.players.forEach(function(p){var net=pNet(p);if(net==null)return;tot[p.name]=(tot[p.name]||0)+net;games[p.name]=(games[p.name]||0)+1;if(net>0)wins[p.name]=(wins[p.name]||0)+1;if(best[p.name]==null||net>best[p.name])best[p.name]=net;});});
-  var names=Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];});
-  if(!names.length)return '<div class="card"><div class="empty">No closed tables yet for '+esc(y)+'.</div></div>';
-  var chips=ylist.length>1?'<div class="chips" style="margin-bottom:10px">'+ylist.map(function(v){return '<span class="chip'+(v===y?' on':'')+'" data-year="'+v+'">'+v+'</span>';}).join('')+'</div>':'';
-  var rows=names.map(function(nm,i){var v=tot[nm];return '<div class="prow"><div class="cnt" style="min-width:28px;font-size:15px;color:var(--mute)">'+(i+1)+'</div><div class="name"><b>'+esc(nm)+'</b><span>'+games[nm]+' table'+(games[nm]==1?'':'s')+' · won '+(wins[nm]||0)+' · best '+money(best[nm])+'</span></div><div class="net '+(v>=0?'pos':'neg')+'">'+money(v)+'</div></div>';}).join('');
-  var sum=names.reduce(function(a,k){return a+tot[k];},0);
-  return '<div class="card"><h2>Season '+esc(y)+'</h2><p class="hint">Who is where so far. Total of every table\'s net, winners first. Through '+esc(prettyDate(last))+'.</p>'+chips+rows+
-  '<p class="sticky-note">All players together: '+money(sum)+'. A number other than zero is the sum of tables that did not balance plus kitty money.</p></div>'+
-  '<div class="card"><button class="btn sec" data-act="exportSeason">Copy season table for the sheet</button></div>';
-};
+  var done=n.players.filter(function(p){return p.settled;}).length;
+  var rows=ps.map(function(p){var i=n.players.indexOf(p),net=pNet(p);
+    return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+p.buyins.length+' buy-in'+(p.buyins.length==1?'':'s')+' · in '+money(pBuyin(p))+(p.cashout==null?'':' · out '+money(p.cashout))+(num(p.adj)?' · penalty '+money(num(p.adj)):'')+'</span></div><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div>'+(withTicks?'<button class="tick'+(p.settled?' on':'')+'" data-settle="'+n.id+'|'+i+'">'+(p.settled?'✓':'')+'</button>':'')+'</div>';}).join('');
+  return '<div class="card"><h2>Final balances</h2><p class="hint">'+esc(prettyDate(n.date))+(n.host?' at '+esc(n.host)+"'s":'')+'. Winners first.'+(withTicks?' Tap the box when a player has settled ('+done+' of '+n.players.length+').':'')+'</p>'+rows+
+  '<div class="balance '+(Math.abs(diff)<0.005?'ok':'bad')+'">'+(Math.abs(diff)<0.005?'Balanced: ':'Off by '+money(diff)+': ')+money(t.buy)+' in, '+money(t.cash)+' out'+(t.adj?', penalties '+money(t.adj):'')+'</div>'+
+  '<div class="row" style="margin-top:12px"><button class="btn sec" data-act="exportNight" data-id="'+n.id+'">Copy for the sheet</button><button class="btn sec" data-act="shareNight" data-id="'+n.id+'">Share</button></div></div>';
+}
 views.hist=function(){
   var h=state.history;
-  if(!h.length)return '<div class="card"><div class="empty">No closed tables yet. Close a table from the Table tab and it will appear here.</div></div>';
-  var rows=h.slice().sort(function(a,b){return (b.date||'')<(a.date||'')?-1:((b.date||'')>(a.date||'')?1:0);}).map(function(n){
-    var t=totals(n);var id=n.id;var diff=Math.round((t.cash-t.buy)*100)/100;
-    return '<div class="hist" data-open="'+id+'"><div><b>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</b><span>'+n.players.length+' players · '+money(t.buy)+' in · '+money(t.cash)+' out'+(Math.abs(diff)>0.005?' · off '+money(diff):'')+(n.fromSheet?' · from the sheet':'')+'</span></div><span>›</span></div>';
-  }).join('');
-  return '<div class="card"><h2>History</h2><p class="hint">Kept on this phone. The 2026 games from the Google Sheet are loaded. Open a table to see every player\'s net.</p>'+rows+'</div>'+
+  if(!h.length)return '<div class="card"><div class="empty">No closed tables yet.</div></div>';
+  var rows=h.slice().sort(function(a,b){return (b.date||'')<(a.date||'')?-1:((b.date||'')>(a.date||'')?1:0);}).map(function(n){var t=totals(n),diff=Math.round((t.cash-t.buy)*100)/100;
+    return '<div class="hist" data-open="'+n.id+'"><div><b>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</b><span>'+n.players.length+' players · '+money(t.buy)+' in · '+money(t.cash)+' out'+(Math.abs(diff)>0.005?' · off '+money(diff):'')+'</span></div><span>›</span></div>';}).join('');
+  return seasonCard()+'<div class="card"><h2>Tables</h2>'+rows+'</div>'+
   '<div class="card"><button class="btn sec" data-act="exportAll">Copy all tables for the sheet</button><div style="margin-top:10px"><button class="btn sec" data-act="lockApp">Lock the app on this phone</button></div></div>';
 };
-function noNight(){return '<div class="card"><div class="empty">No table open.</div><button class="btn" data-go="start">Open a table</button></div>';}
+function seasonTotals(y){
+  var all=state.history.slice();var tot={},games={},wins={},best={},last='';
+  all.forEach(function(n){if((n.date||'').slice(0,4)!==y)return;if(n.date>last)last=n.date;n.players.forEach(function(p){var net=pNet(p);if(net==null)return;tot[p.name]=(tot[p.name]||0)+net;games[p.name]=(games[p.name]||0)+1;if(net>0)wins[p.name]=(wins[p.name]||0)+1;if(best[p.name]==null||net>best[p.name])best[p.name]=net;});});
+  return {tot:tot,games:games,wins:wins,best:best,last:last,names:Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];})};
+}
+function seasonCard(){
+  var years={};state.history.forEach(function(n){years[(n.date||'').slice(0,4)]=1;});var ylist=Object.keys(years).sort().reverse();
+  var y=state._year||ylist[0]||'';var s=seasonTotals(y);if(!s.names.length)return'';
+  var chips=ylist.length>1?'<div class="chips" style="margin-bottom:10px">'+ylist.map(function(v){return '<span class="chip'+(v===y?' on':'')+'" data-year="'+v+'">'+v+'</span>';}).join('')+'</div>':'';
+  var rows=s.names.map(function(nm,i){var v=s.tot[nm];return '<div class="prow"><div class="rank">'+(i+1)+'</div><div class="name"><b>'+esc(nm)+'</b><span>'+s.games[nm]+' table'+(s.games[nm]==1?'':'s')+' · won '+(s.wins[nm]||0)+' · best '+money(s.best[nm])+'</span></div><div class="net '+(v>=0?'pos':'neg')+'">'+money(v)+'</div></div>';}).join('');
+  return '<div class="card"><details '+(state._seasonOpen?'open':'')+' id="seasonDetails"><summary class="season-toggle"><h2 style="margin:0">Season '+esc(y)+' standings</h2><span>'+(state._seasonOpen?'hide':'show')+'</span></summary><p class="hint">Who is where so far, through '+esc(prettyDate(s.last))+'. Winners first.</p>'+chips+rows+'<div style="margin-top:12px"><button class="btn sec" data-act="exportSeason">Copy standings for the sheet</button></div></details></div>';
+}
 
-// ---------- export ----------
 function exportText(n){
   var lines=[['Player','Buy-in Amount','Total #','Total Buy-in','Cash-out','Late Penalty','Haar/Jeet','Settled'].join('\t')];
   n.players.forEach(function(p){var net=pNet(p);lines.push([p.name,n.buyin,p.buyins.length,pBuyin(p),p.cashout==null?'':p.cashout,num(p.adj)||'',net==null?'':Math.round(net*100)/100,p.settled?'settled':''].join('\t'));});
-  var t=totals(n);lines.push(['Total','',t.count,t.buy,t.cash,t.adj,Math.round((t.cash-t.buy-t.adj)*100)/100,''].join('\t'));
-  return lines.join('\n');
+  var t=totals(n);lines.push(['Total','',t.count,t.buy,t.cash,t.adj,Math.round((t.cash-t.buy-t.adj)*100)/100,''].join('\t'));return lines.join('\n');
 }
-function summaryText(n){
-  var t=totals(n);var out=['Poker table '+prettyDate(n.date)+(n.host?' at '+n.host+"'s":'')];
-  n.players.slice().sort(function(a,b){return (pNet(b)||0)-(pNet(a)||0);}).forEach(function(p){var net=pNet(p);out.push(p.name+': '+(net==null?'not cashed out':money(net))+(p.settled?' (settled)':''));});
-  out.push('In '+money(t.buy)+', out '+money(t.cash)+(Math.abs(t.cash-t.buy)>0.005?', off by '+money(t.cash-t.buy):', balanced'));
-  return out.join('\n');
-}
+function summaryText(n){var t=totals(n);var out=['Poker table '+prettyDate(n.date)+(n.host?' at '+n.host+"'s":'')];
+  n.players.slice().sort(function(a,b){return (pNet(b)||0)-(pNet(a)||0);}).forEach(function(p){var net=pNet(p);out.push(p.name+': '+(net==null?'not entered':money(net)));});
+  out.push('In '+money(t.buy)+', out '+money(t.cash)+(Math.abs(t.cash-t.buy)>0.005?', off by '+money(t.cash-t.buy):', balanced'));return out.join('\n');}
 function showText(title,text,note){
   openSheet('<h3>'+esc(title)+'</h3><p class="hint">'+esc(note||'')+'</p><textarea id="exp" readonly>'+esc(text)+'</textarea><div class="row" style="margin-top:10px"><button class="btn" id="copyBtn">Copy</button><button class="btn sec" id="closeSheet">Close</button></div>');
   var ta=document.getElementById('exp');ta.focus();ta.select();
-  document.getElementById('copyBtn').onclick=function(){
-    var done=false;
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast('Copied');},function(){fallback();});}
-    else fallback();
-    function fallback(){try{ta.select();done=document.execCommand('copy');}catch(e){}toast(done?'Copied':'Select the text and copy');}
-  };
+  document.getElementById('copyBtn').onclick=function(){function fb(){var d=false;try{ta.select();d=document.execCommand('copy');}catch(e){}toast(d?'Copied':'Select the text and copy');}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(function(){toast('Copied');},fb);else fb();};
 }
 function openSheet(html){var s=document.getElementById('sheet');document.getElementById('sheetBox').innerHTML=html;s.classList.add('show');var c=document.getElementById('closeSheet');if(c)c.onclick=closeSheet;}
 function closeSheet(){document.getElementById('sheet').classList.remove('show');}
 
-// ---------- actions ----------
-function render(){
-  header();
-  document.getElementById('main').innerHTML=views[state.view]();
-  Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===state.view);});
-  window.scrollTo(0,0);
-}
+function render(){header();document.getElementById('main').innerHTML=views[state.view]();Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===state.view);});window.scrollTo(0,0);
+  var d=document.getElementById('seasonDetails');if(d)d.addEventListener('toggle',function(){state._seasonOpen=d.open;var sp=d.querySelector('summary span');if(sp)sp.textContent=d.open?'hide':'show';});}
 function go(v){state.view=v;render();}
 function startNight(){
-  var date=document.getElementById('fDate').value||todayISO();
-  var host=document.getElementById('fHost').value.trim();
-  var buy=num(document.getElementById('fBuy').value)||50;
+  var date=document.getElementById('fDate').value||todayISO(),host=document.getElementById('fHost').value.trim(),buy=num(document.getElementById('fBuy').value)||50;
   var sel=state._sel||{};var names=state.roster.filter(function(r){return sel[r];});
   if(!names.length){toast('Tap at least one player');return;}
-  state.night={id:Date.now(),date:date,host:host,buyin:buy,players:names.map(function(nm){return {name:nm,buyins:[],cashout:null,adj:0,settled:false};}),log:[]};
-  state._sel={};state._host='';save();go('table');
+  state.night={id:Date.now(),date:date,host:host,buyin:buy,phase:'buyins',players:names.map(function(nm){return {name:nm,buyins:[],cashout:null,adj:0,settled:false};}),log:[]};
+  state._sel={};state._host='';state.lastClosed=null;save();render();
 }
-function addBuy(i,amount){var n=state.night,p=n.players[i];p.buyins.push(amount);n.log.push({i:i,a:amount});save();render();toast(p.name+' +'+money(amount));}
+function addBuy(i,a){var n=state.night,p=n.players[i];p.buyins.push(a);n.log.push({i:i,a:a});save();render();toast(p.name+' +'+money(a));}
 function removeBuy(i){var n=state.night,p=n.players[i];if(!p.buyins.length)return;var a=p.buyins.pop();for(var k=n.log.length-1;k>=0;k--){if(n.log[k].i===i&&n.log[k].a===a){n.log.splice(k,1);break;}}save();render();toast(p.name+' −'+money(a));}
-function undoLast(){var n=state.night;if(!n.log.length)return;var l=n.log.pop();var p=n.players[l.i];var k=p.buyins.lastIndexOf(l.a);if(k>-1)p.buyins.splice(k,1);save();render();toast('Undid '+p.name+' '+money(l.a));}
-function customBuy(i){
-  var n=state.night,p=n.players[i];var b=n.buyin;
-  openSheet('<h3>'+esc(p.name)+': other amount</h3><div class="quick"><button data-q="'+(b/2)+'">'+money(b/2)+'</button><button data-q="'+b+'">'+money(b)+'</button><button data-q="'+(b*2)+'">'+money(b*2)+'</button><button data-q="'+(b*3)+'">'+money(b*3)+'</button></div>'+
-  '<input type="number" inputmode="decimal" id="cAmt" placeholder="Amount in dollars"><div class="row" style="margin-top:10px"><button class="btn" id="cOk">Add buy-in</button><button class="btn sec" id="closeSheet">Cancel</button></div>');
+function customBuy(i){var n=state.night,p=n.players[i],b=n.buyin;
+  openSheet('<h3>'+esc(p.name)+': other amount</h3><div class="quick"><button data-q="'+(b/2)+'">'+money(b/2)+'</button><button data-q="'+b+'">'+money(b)+'</button><button data-q="'+(b*2)+'">'+money(b*2)+'</button><button data-q="'+(b*3)+'">'+money(b*3)+'</button></div><input type="number" inputmode="decimal" id="cAmt" placeholder="Amount in dollars"><div class="row" style="margin-top:10px"><button class="btn" id="cOk">Add buy-in</button><button class="btn sec" id="closeSheet">Cancel</button></div>');
   Array.prototype.forEach.call(document.querySelectorAll('[data-q]'),function(q){q.onclick=function(){closeSheet();addBuy(i,num(q.getAttribute('data-q')));};});
   document.getElementById('cOk').onclick=function(){var a=num(document.getElementById('cAmt').value);if(a<=0){toast('Enter an amount');return;}closeSheet();addBuy(i,a);};
-  setTimeout(function(){document.getElementById('cAmt').focus();},50);
-}
-function addPlayersSheet(){
-  var n=state.night;var have={};n.players.forEach(function(p){have[p.name]=1;});
+  setTimeout(function(){document.getElementById('cAmt').focus();},50);}
+function addPlayersSheet(){var n=state.night;var have={};n.players.forEach(function(p){have[p.name]=1;});
   var chips=state.roster.filter(function(r){return !have[r];}).map(function(r){return '<span class="chip" data-add="'+esc(r)+'">'+esc(r)+'</span>';}).join('');
   openSheet('<h3>Add players</h3><div class="chips">'+(chips||'<span class="hint">Everyone on the roster is already in.</span>')+'</div><div class="row" style="margin-top:12px"><input type="text" id="aNew" placeholder="New name"><button class="btn sm sec" id="aAdd" style="flex:0 0 auto">Add</button></div><div style="margin-top:12px"><button class="btn sec" id="closeSheet">Done</button></div>');
   function addName(nm){nm=nm.trim();if(!nm)return;if(state.roster.indexOf(nm)<0)state.roster.push(nm);if(!have[nm]){n.players.push({name:nm,buyins:[],cashout:null,adj:0,settled:false});have[nm]=1;}save();render();toast(nm+' added');}
   Array.prototype.forEach.call(document.querySelectorAll('[data-add]'),function(c){c.onclick=function(){addName(c.getAttribute('data-add'));c.remove();};});
-  document.getElementById('aAdd').onclick=function(){var v=document.getElementById('aNew');addName(v.value);v.value='';};
-}
-function editNight(){
-  var n=state.night;
+  document.getElementById('aAdd').onclick=function(){var v=document.getElementById('aNew');addName(v.value);v.value='';};}
+function editNight(){var n=state.night;
   openSheet('<h3>Edit the table</h3><label>Date</label><input type="date" id="eDate" value="'+n.date+'"><label>Host</label><input type="text" id="eHost" value="'+esc(n.host)+'"><label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="eBuy" value="'+n.buyin+'"><div class="row" style="margin-top:12px"><button class="btn" id="eOk">Save</button><button class="btn sec" id="closeSheet">Cancel</button></div><div style="margin-top:14px"><button class="btn warn" id="eDel">Delete this table</button></div>');
   document.getElementById('eOk').onclick=function(){n.date=document.getElementById('eDate').value||n.date;n.host=document.getElementById('eHost').value.trim();n.buyin=num(document.getElementById('eBuy').value)||n.buyin;save();closeSheet();render();};
-  document.getElementById('eDel').onclick=function(){if(confirm('Delete this table and all its buy-ins?')){state.night=null;save();closeSheet();go('start');}};
-}
-function closeNight(){
-  var n=state.night;var t=totals(n);var pending=n.players.length-t.cashed;
-  var msg=pending?pending+' player'+(pending>1?'s have':' has')+' no cash-out entered. Close anyway?':'Close the table and move it to History?';
-  if(!confirm(msg))return;
-  state.history.push(n);state.night=null;save();go('hist');toast('Table closed and saved');
-}
-function openHist(id){
-  var n=null;state.history.forEach(function(x){if(String(x.id)===String(id))n=x;});if(!n)return;
-  var t=totals(n);
-  var rows=n.players.slice().sort(function(a,b){return (pNet(b)||0)-(pNet(a)||0);}).map(function(p){var net=pNet(p);return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+p.buyins.length+' × in '+money(pBuyin(p))+' · out '+(p.cashout==null?'—':money(p.cashout))+'</span></div><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';}).join('');
-  openSheet('<h3>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</h3><p class="hint">In '+money(t.buy)+' · out '+money(t.cash)+'</p><div style="max-height:45vh;overflow:auto">'+rows+'</div><div class="row" style="margin-top:12px"><button class="btn" id="hExp">Copy for the sheet</button><button class="btn sec" id="hReopen">Reopen</button></div><div class="row" style="margin-top:10px"><button class="btn warn" id="hDel">Delete</button><button class="btn sec" id="closeSheet">Close</button></div>');
-  document.getElementById('hExp').onclick=function(){showText('Rows for the sheet',exportText(n),'Paste into a new tab. Columns match: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');};
-  document.getElementById('hReopen').onclick=function(){if(state.night&&!confirm('A table is already open. Replace it with this one?'))return;state.history=state.history.filter(function(x){return x!==n;});state.night=n;save();closeSheet();go('table');};
-  document.getElementById('hDel').onclick=function(){if(confirm('Delete this table from history?')){state.history=state.history.filter(function(x){return x!==n;});save();closeSheet();render();}};
-}
+  document.getElementById('eDel').onclick=function(){if(confirm('Delete this table and all its buy-ins?')){state.night=null;save();closeSheet();render();}};}
+function closeNight(){var n=state.night,t=totals(n),pending=n.players.length-t.cashed;
+  if(pending&&!confirm(pending+' player'+(pending>1?'s have':' has')+' no chips entered. They will count as $0. Close anyway?'))return;
+  n.players.forEach(function(p){if(p.cashout==null)p.cashout=0;});delete n.phase;
+  state.history.push(n);state.lastClosed=n.id;state.night=null;save();render();toast('Table closed and saved');}
+function openHist(id){var n=findHist(id);if(!n)return;
+  openSheet(finalCard(n,false).replace('class="card"','class="card" style="border:0;padding:0;margin:0"')+'<div class="row" style="margin-top:10px"><button class="btn sec" id="hReopen">Reopen this table</button><button class="btn warn" id="hDel">Delete</button></div><div style="margin-top:10px"><button class="btn sec" id="closeSheet">Close</button></div>');
+  document.getElementById('hReopen').onclick=function(){if(state.night&&!confirm('A table is already open. Replace it with this one?'))return;state.history=state.history.filter(function(x){return x!==n;});n.phase='cashout';state.night=n;if(state.lastClosed===n.id)state.lastClosed=null;save();closeSheet();go('table');};
+  document.getElementById('hDel').onclick=function(){if(confirm('Delete this table from history?')){state.history=state.history.filter(function(x){return x!==n;});if(state.lastClosed===n.id)state.lastClosed=null;save();closeSheet();render();}};}
 
-// ---------- events ----------
 document.getElementById('nav').addEventListener('click',function(e){var b=e.target.closest('button');if(b)go(b.getAttribute('data-v'));});
 document.getElementById('sheet').addEventListener('click',function(e){if(e.target.id==='sheet')closeSheet();});
-var pressTimer=null,longPressed=false;
-var main=document.getElementById('main');
+document.getElementById('sheetBox').addEventListener('click',function(e){var t=e.target.closest('[data-act]');if(!t)return;var id=t.getAttribute('data-id');var n=findHist(id);if(!n)return;
+  if(t.getAttribute('data-act')==='exportNight')showText('Rows for the sheet',exportText(n),'Paste into a new tab. Columns: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');
+  if(t.getAttribute('data-act')==='shareNight'){var txt=summaryText(n);if(navigator.share)navigator.share({text:txt}).catch(function(){});else showText('Summary',txt,'Copy and paste into the group chat.');}});
+var pressTimer=null,longPressed=false;var main=document.getElementById('main');
 main.addEventListener('click',function(e){
-  var t=e.target.closest('[data-go],[data-act],[data-chip],[data-buy],[data-undo],[data-settle],[data-open]');if(!t)return;
-  if(t.hasAttribute('data-go'))return go(t.getAttribute('data-go'));
-  if(t.hasAttribute('data-chip')){state._sel=state._sel||{};var nm=t.getAttribute('data-chip');state._sel[nm]=!state._sel[nm];state._date=document.getElementById('fDate').value;state._host=document.getElementById('fHost').value;state._buy=document.getElementById('fBuy').value;return render();}
+  var t=e.target.closest('[data-act],[data-chip],[data-buy],[data-undo],[data-settle],[data-open],[data-year]');if(!t)return;
+  if(t.hasAttribute('data-chip')){state._sel=state._sel||{};var nm=t.getAttribute('data-chip');state._sel[nm]=!state._sel[nm];keepForm();return render();}
   if(t.hasAttribute('data-buy')){if(longPressed){longPressed=false;return;}return addBuy(num(t.getAttribute('data-buy')),state.night.buyin);}
   if(t.hasAttribute('data-undo'))return removeBuy(num(t.getAttribute('data-undo')));
-  if(t.hasAttribute('data-settle')){var p=state.night.players[num(t.getAttribute('data-settle'))];p.settled=!p.settled;save();return render();}
+  if(t.hasAttribute('data-settle')){var parts=t.getAttribute('data-settle').split('|');var hn=findHist(parts[0]);if(!hn)return;var p=hn.players[num(parts[1])];p.settled=!p.settled;save();return render();}
   if(t.hasAttribute('data-open'))return openHist(t.getAttribute('data-open'));
-  if(t.hasAttribute('data-year')){state._year=t.getAttribute('data-year');return render();}
+  if(t.hasAttribute('data-year')){state._year=t.getAttribute('data-year');state._seasonOpen=true;return render();}
   var act=t.getAttribute('data-act');
   if(act==='startNight')return startNight();
-  if(act==='addName'){var v=document.getElementById('fNew');var nm2=v.value.trim();if(!nm2)return;if(state.roster.indexOf(nm2)<0)state.roster.push(nm2);state._sel=state._sel||{};state._sel[nm2]=true;state._date=document.getElementById('fDate').value;state._host=document.getElementById('fHost').value;state._buy=document.getElementById('fBuy').value;save();return render();}
+  if(act==='addName'){var v=document.getElementById('fNew');var nm2=v.value.trim();if(!nm2)return;if(state.roster.indexOf(nm2)<0)state.roster.push(nm2);state._sel=state._sel||{};state._sel[nm2]=true;keepForm();save();return render();}
   if(act==='addPlayers')return addPlayersSheet();
   if(act==='editNight')return editNight();
+  if(act==='gameDone'){var tn=state.night;if(!totals(tn).count){toast('No buy-ins yet');return;}tn.phase='cashout';save();return render();}
+  if(act==='backToBuyins'){state.night.phase='buyins';save();return render();}
   if(act==='closeNight')return closeNight();
-  if(act==='undoLast')return undoLast();
-  if(act==='export')return showText('Rows for the sheet',exportText(state.night),'Paste into a new tab. Columns match: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');
-  if(act==='exportSeason'){var all=state.history.slice();if(state.night&&totals(state.night).cashed>0)all.push(state.night);var y=state._year||'';var tot={};all.forEach(function(n){if(y&&(n.date||'').slice(0,4)!==y)return;n.players.forEach(function(p){var net=pNet(p);if(net!=null)tot[p.name]=(tot[p.name]||0)+net;});});var lines=['Khiladi\tTotal Haar/Jeet'];Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];}).forEach(function(k){lines.push(k+'\t'+(Math.round(tot[k]*100)/100));});return showText('Season table',lines.join('\n'),'Same two columns as the Total Haar/Jeet tab.');}
+  if(act==='newTable'){state.lastClosed=null;save();return render();}
+  if(act==='exportNight'){var en=findHist(t.getAttribute('data-id'));if(en)return showText('Rows for the sheet',exportText(en),'Paste into a new tab. Columns: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');}
+  if(act==='shareNight'){var sn=findHist(t.getAttribute('data-id'));if(sn){var txt=summaryText(sn);if(navigator.share)navigator.share({text:txt}).catch(function(){});else showText('Summary',txt,'Copy and paste into the group chat.');}return;}
+  if(act==='exportSeason'){var years={};state.history.forEach(function(n){years[(n.date||'').slice(0,4)]=1;});var y=state._year||Object.keys(years).sort().reverse()[0]||'';var s=seasonTotals(y);var lines=['Khiladi\tTotal Haar/Jeet'];s.names.forEach(function(k){lines.push(k+'\t'+(Math.round(s.tot[k]*100)/100));});return showText('Season '+y+' standings',lines.join('\n'),'Same two columns as the Total Haar/Jeet tab.');}
+  if(act==='exportAll'){var all=state.history.slice().sort(function(a,b){return (a.date||'')<(b.date||'')?-1:1;}).map(function(n){return prettyDate(n.date)+(n.host?' - '+n.host:'')+'\n'+exportText(n);}).join('\n\n');return showText('All tables',all,'One block per table, in the sheet\'s column order.');}
   if(act==='lockApp'){if(!confirm('Lock the app? The password will be needed again on this phone. Tables already saved here stay saved.'))return;store.set('pn_unlocked',false);return showLock();}
-  if(act==='exportAll'){var all=state.history.map(function(n){return prettyDate(n.date)+(n.host?' - '+n.host:'')+'\n'+exportText(n);}).join('\n\n');return showText('All tables',all,'One block per table, in the sheet\'s column order.');}
-  if(act==='share'){var txt=summaryText(state.night);if(navigator.share){navigator.share({text:txt}).catch(function(){});}else showText('Summary',txt,'Copy and paste into the group chat.');}
 });
-// long press on + for a custom amount
+function keepForm(){var d=document.getElementById('fDate'),h=document.getElementById('fHost'),b=document.getElementById('fBuy');if(d)state._date=d.value;if(h)state._host=h.value;if(b)state._buy=b.value;}
 function startPress(e){var t=e.target.closest('[data-buy]');if(!t)return;longPressed=false;pressTimer=setTimeout(function(){longPressed=true;if(navigator.vibrate)navigator.vibrate(20);customBuy(num(t.getAttribute('data-buy')));},500);}
 function endPress(){clearTimeout(pressTimer);}
 main.addEventListener('touchstart',startPress,{passive:true});main.addEventListener('touchend',endPress);main.addEventListener('touchmove',endPress,{passive:true});main.addEventListener('touchcancel',endPress);
 main.addEventListener('mousedown',startPress);main.addEventListener('mouseup',endPress);main.addEventListener('mouseleave',endPress);
 main.addEventListener('contextmenu',function(e){if(e.target.closest('[data-buy]'))e.preventDefault();});
-// cash-out inputs
-main.addEventListener('input',function(e){
-  var t=e.target;var n=state.night;if(!n)return;
+main.addEventListener('input',function(e){var t=e.target,n=state.night;if(!n)return;
   if(t.hasAttribute('data-cash')){var p=n.players[num(t.getAttribute('data-cash'))];p.cashout=t.value===''?null:num(t.value);save();refreshCashNets();}
-  if(t.hasAttribute('data-adj')){var p2=n.players[num(t.getAttribute('data-adj'))];p2.adj=t.value===''?0:num(t.value);save();refreshCashNets();}
-});
-function refreshCashNets(){ // update nets and balance without re-rendering inputs (keeps the keyboard open)
-  var n=state.night;
-  Array.prototype.forEach.call(document.querySelectorAll('.cashrow'),function(row,i){var net=pNet(n.players[i]);var el=row.querySelector('.net');el.textContent=net==null?'—':money(net);el.className='net '+(net==null?'':(net>=0?'pos':'neg'));});
-  var tmp=document.createElement('div');tmp.innerHTML=views.cash();var nb=tmp.querySelector('.balance'),ob=document.querySelector('.balance');if(nb&&ob)ob.outerHTML=nb.outerHTML;
-  header();
-}
+  if(t.hasAttribute('data-adj')){var p2=n.players[num(t.getAttribute('data-adj'))];p2.adj=t.value===''?0:num(t.value);save();refreshCashNets();}});
+function refreshCashNets(){var n=state.night;Array.prototype.forEach.call(document.querySelectorAll('.cashrow'),function(row,i){var net=pNet(n.players[i]);var el=row.querySelector('.net');el.textContent=net==null?'—':money(net);el.className='net '+(net==null?'':(net>=0?'pos':'neg'));});
+  var ob=document.querySelector('.balance');if(ob)ob.outerHTML=balanceBox(n);header();}
 
 function mergeSeed(seed){var have={};state.history.forEach(function(x){have[String(x.id)]=1;});var added=0;seed.forEach(function(s){if(!have[s.id]){state.history.push(JSON.parse(JSON.stringify(s)));added++;}});if(added)save();}
 function b64(s){var bin=atob(s),a=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;}
-async function tryUnlock(pw){
-  if(!(window.crypto&&crypto.subtle))throw new Error('nocrypto');
-  var enc=new TextEncoder();
+async function tryUnlock(pw){if(!(window.crypto&&crypto.subtle))throw new Error('nocrypto');var enc=new TextEncoder();
   var km=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']);
   var key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(LOCK.salt),iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
-  try{var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(LOCK.iv)},key,b64(LOCK.data));return JSON.parse(new TextDecoder().decode(pt));}catch(e){return null;}
-}
-function showLock(){
-  document.getElementById('nav').style.display='none';document.getElementById('hTotal').style.display='none';document.getElementById('hSub').textContent='';
+  try{var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(LOCK.iv)},key,b64(LOCK.data));return JSON.parse(new TextDecoder().decode(pt));}catch(e){return null;}}
+function showLock(){document.getElementById('nav').style.display='none';document.getElementById('hTotal').style.display='none';document.getElementById('hSub').textContent='';
   document.getElementById('main').innerHTML='<div class="lock"><div class="card"><h2>Poker Hisab</h2><p class="hint">Enter the group password to open the app on this phone.</p><input type="password" id="pw" autocomplete="current-password" placeholder="Password"><div class="err" id="pwErr"></div><button class="btn" id="pwGo" style="margin-top:6px">Open</button></div></div>';
   var inp=document.getElementById('pw'),err=document.getElementById('pwErr'),btn=document.getElementById('pwGo');
-  async function go(){var v=inp.value.trim();if(!v)return;btn.disabled=true;err.textContent='Checking…';
-    try{var seed=await tryUnlock(v);}catch(e){err.textContent='This browser cannot open the lock. Use the https address.';btn.disabled=false;return;}
+  async function go2(){var v=inp.value.trim();if(!v)return;btn.disabled=true;err.textContent='Checking…';var seed;
+    try{seed=await tryUnlock(v);}catch(e){err.textContent='This browser cannot open the lock. Use the https address.';btn.disabled=false;return;}
     if(!seed){err.textContent='Not it. Try again.';inp.value='';inp.focus();btn.disabled=false;return;}
     store.set('pn_unlocked',true);mergeSeed(seed);boot();}
-  btn.onclick=go;inp.addEventListener('keydown',function(e){if(e.key==='Enter')go();});setTimeout(function(){inp.focus();},50);
-}
-function boot(){document.getElementById('nav').style.display='';state.view=state.night?'table':'start';render();}
+  btn.onclick=go2;inp.addEventListener('keydown',function(e){if(e.key==='Enter')go2();});setTimeout(function(){inp.focus();},50);}
+function boot(){document.getElementById('nav').style.display='';state.view='table';render();}
 if(store.get('pn_unlocked'))boot();else showLock();
 })();
 </script>
