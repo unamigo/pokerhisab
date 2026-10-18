@@ -171,7 +171,7 @@ function attach(){
   histRef.on('value',function(s){var v=s.val()||{};state.history=Object.keys(v).map(function(k){return normNight(v[k]);});if(state._seed&&!state._seeded){seedCloud();}render();},function(e){setConn('No access to history: '+e.code+'.',true);});
 }
 function seedCloud(){var have={};state.history.forEach(function(x){have[String(x.id)]=1;});var upd={};var c=0;state._seed.forEach(function(s){if(!have[s.id]){upd[s.id]=s;c++;}});state._seeded=true;if(c)histRef.update(upd).then(function(){toast('Loaded '+c+' tables from the sheet');});}
-function writeLive(){if(!state.night)return liveRef.remove();var n=JSON.parse(JSON.stringify(state.night));return liveRef.set(n);}
+function writeLive(obj){var src=obj||state.night;if(!src)return liveRef.remove();var n=JSON.parse(JSON.stringify(src));return liveRef.set(n);}
 function liveUpdate(obj){return liveRef.update(obj);}
 
 // ---------- header ----------
@@ -215,7 +215,7 @@ function munimScreen(n){
   if(!n.players.length)return '<div class="card"><div class="empty">Nobody at the table yet.</div><button class="btn sec" data-act="addPlayers">Add players</button></div>';
   var rows=n.players.map(function(p,i){var b=pBuyin(p);var odd=p.buyins.some(function(x){return x!==n.buyin;});
     return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+money(b)+(odd?' (custom amounts)':'')+'</span></div><div class="cnt">'+p.buyins.length+'</div><button class="minus" data-undo="'+i+'" '+(p.buyins.length?'':'disabled')+'>−</button><button class="plus" data-buy="'+i+'">+</button></div>';}).join('');
-  return requestsBlock(n)+'<div class="card"><h2>Buy-ins <span class="pill">this phone is the Munim</span></h2><p class="hint">Tap + when you hand over one buy-in of '+money(n.buyin)+'. Press and hold + for another amount. − takes the last one back. Requests from players appear above.</p>'+rows+'</div>'+
+  return requestsBlock(n)+'<div class="card"><h2>Buy-ins <span class="pill">this phone is the Munim</span></h2><p class="hint">Host: '+esc(n.host||'not set')+' · Munim: '+esc(n.munim||'')+'</p><p class="hint">Tap + when you hand over one buy-in of '+money(n.buyin)+'. Press and hold + for another amount. − takes the last one back. Requests from players appear above.</p>'+rows+'</div>'+
   '<div class="row" style="margin-bottom:12px"><button class="btn sec" data-act="addPlayers">Add player</button><button class="btn sec" data-act="editNight">Edit table</button></div>'+
   '<button class="btn" data-act="gameDone">Game done, enter chips</button>';
 }
@@ -223,16 +223,17 @@ function playerScreen(n){
   var me=state.me;var myReqs=pendingRequests(n).filter(function(r){return r.byUid===state.uid;});
   var rows=n.players.map(function(p,i){var b=pBuyin(p);var mine=p.name===me;
     return '<div class="prow'+(mine?' mine':'')+'"><div class="name"><b>'+esc(p.name)+(mine?' <span class="you">you</span>':'')+'</b><span>'+p.buyins.length+' buy-in'+(p.buyins.length==1?'':'s')+' · '+money(b)+'</span></div>'+(mine?'<button class="btn sm" data-req="'+i+'">I\'m buying '+money(n.buyin)+'</button>':'<button class="btn sm sec" data-req="'+i+'">Buying</button>')+'</div>';}).join('');
-  var pend=myReqs.length?'<div class="card req"><h3>Waiting for '+esc(n.munim||'the Munim')+'</h3>'+myReqs.map(function(r){return '<div class="prow"><div class="name"><b>'+esc(r.name)+'</b><span>'+money(r.amount)+' requested</span></div><button class="btn sm sec" data-cancel="'+r.key+'">Cancel</button></div>';}).join('')+'</div>':'';
+  var allReqs=pendingRequests(n);
+  var pend=allReqs.length?'<div class="card req"><h3>Chips requested</h3><p class="hint">Waiting for '+esc(n.munim||'the Munim')+' to confirm.</p>'+allReqs.map(function(r){var mine=r.byUid===state.uid;return '<div class="prow"><div class="name"><b>'+esc(r.name)+' is requesting '+money(r.amount)+'</b><span>'+(r.byName&&r.byName!==r.name?'asked by '+esc(r.byName)+' · ':'')+'waiting for '+esc(n.munim||'the Munim')+'</span></div>'+(mine?'<button class="btn sm sec" data-cancel="'+r.key+'">Cancel</button>':'')+'</div>';}).join('')+'</div>':'';
   var who=me?'':'<div class="card"><h3>Who are you?</h3><p class="hint">Pick your name so your buy-in button is one tap.</p><div class="chips">'+n.players.map(function(p){return '<span class="chip" data-me="'+esc(p.name)+'">'+esc(p.name)+'</span>';}).join('')+'</div></div>';
-  var hints=pendingRequests(n).length&&!myReqs.length?'<p class="hint">'+pendingRequests(n).length+' request'+(pendingRequests(n).length==1?'':'s')+' waiting for the Munim.</p>':'';
-  return who+pend+'<div class="card"><h2>Live table</h2><p class="hint">'+esc(n.munim||'The Munim')+' holds the book. Tap your button when you take chips; it shows on every phone and '+esc(n.munim||'the Munim')+' confirms it.'+'</p>'+hints+rows+'</div>'+
-  '<div class="card"><div class="row"><button class="btn sec" data-act="changeMe">Not '+esc(me||'you')+'?</button><button class="btn sec" data-act="takeBook">Make this phone the Munim\'s</button></div></div>';
+  var roles='<p class="hint">Host: '+esc(n.host||'not set')+' · Munim: '+esc(n.munim||'not set')+'</p>';
+  return who+pend+'<div class="card"><h2>Live table</h2>'+roles+'<p class="hint">'+esc(n.munim||'The Munim')+' holds the book. Tap your button when you take chips; it shows on every phone and '+esc(n.munim||'the Munim')+' confirms it.'+'</p>'+rows+'</div>'+
+  '<div class="card"><div class="row"><button class="btn sec" data-act="imHost">I\'m the host</button><button class="btn sec" data-act="imMunim">I\'m the Munim</button></div><div style="margin-top:10px"><button class="btn sec" data-act="changeMe">Not '+esc(me||'you')+'?</button></div></div>';
 }
 function watchCashout(n){
   var rows=n.players.map(function(p){var net=pNet(p);return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>in '+money(pBuyin(p))+(p.cashout==null?' · chips not entered yet':' · out '+money(p.cashout))+'</span></div><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';}).join('');
   return '<div class="card"><h2>Counting chips</h2><p class="hint">'+esc(n.munim||'The Munim')+' is entering end chips. Results fill in live.</p>'+rows+balanceBox(n)+'</div>'+
-  '<div class="card"><button class="btn sec" data-act="takeBook">Make this phone the Munim\'s</button></div>';
+  '<div class="card"><button class="btn sec" data-act="imMunim">I\'m the Munim, move the book here</button></div>';
 }
 function cashoutScreen(n){
   var rows=n.players.map(function(p,i){var net=pNet(p);
@@ -328,12 +329,12 @@ function requestBuy(i){var n=state.night,p=n.players[i],b=n.buyin;
 function addPlayersSheet(){var n=state.night;var have={};n.players.forEach(function(p){have[p.name]=1;});
   var chips=state.roster.filter(function(r){return !have[r];}).map(function(r){return '<span class="chip" data-add="'+esc(r)+'">'+esc(r)+'</span>';}).join('');
   openSheet('<h3>Add players</h3><div class="chips">'+(chips||'<span class="hint">Everyone on the roster is already in.</span>')+'</div><div class="row" style="margin-top:12px"><input type="text" id="aNew" placeholder="New name"><button class="btn sm sec" id="aAdd" style="flex:0 0 auto">Add</button></div><div style="margin-top:12px"><button class="btn sec" id="closeSheet">Done</button></div>');
-  function addName(nm){nm=nm.trim();if(!nm)return;if(state.roster.indexOf(nm)<0){state.roster.push(nm);store.set('pn_roster',state.roster);}if(!have[nm]){n.players.push({name:nm,buyins:[],cashout:null,adj:0,settled:false});have[nm]=1;writeLive();}toast(nm+' added');}
+  function addName(nm){nm=nm.trim();if(!nm)return;var cur=state.night;if(!cur)return;if(state.roster.indexOf(nm)<0){state.roster.push(nm);store.set('pn_roster',state.roster);}if(!have[nm]){cur.players.push({name:nm,buyins:[],cashout:null,adj:0,settled:false});have[nm]=1;writeLive(cur);}toast(nm+' added');}
   Array.prototype.forEach.call(document.querySelectorAll('[data-add]'),function(c){c.onclick=function(){addName(c.getAttribute('data-add'));c.remove();};});
   document.getElementById('aAdd').onclick=function(){var v=document.getElementById('aNew');addName(v.value);v.value='';};}
 function editNight(){var n=state.night;
   openSheet('<h3>Edit the table</h3><label>Date</label><input type="date" id="eDate" value="'+n.date+'"><label>Host</label><input type="text" id="eHost" value="'+esc(n.host)+'"><label>Munim</label><input type="text" id="eMunim" value="'+esc(n.munim)+'"><label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="eBuy" value="'+n.buyin+'"><div class="row" style="margin-top:12px"><button class="btn" id="eOk">Save</button><button class="btn sec" id="closeSheet">Cancel</button></div><div style="margin-top:14px"><button class="btn warn" id="eDel">Delete this table</button></div>');
-  document.getElementById('eOk').onclick=function(){n.date=document.getElementById('eDate').value||n.date;n.host=document.getElementById('eHost').value.trim();n.munim=document.getElementById('eMunim').value.trim()||n.munim;n.buyin=num(document.getElementById('eBuy').value)||n.buyin;writeLive();closeSheet();};
+  document.getElementById('eOk').onclick=function(){var up={date:document.getElementById('eDate').value||n.date,host:document.getElementById('eHost').value.trim(),munim:document.getElementById('eMunim').value.trim()||n.munim,buyin:num(document.getElementById('eBuy').value)||n.buyin};liveUpdate(up);closeSheet();};
   document.getElementById('eDel').onclick=function(){if(confirm('Delete this table for everyone, with all its buy-ins?')){liveRef.remove();closeSheet();}};}
 function closeNight(){clearTimeout(cashTimer);flushPending();var n=state.night,t=totals(n),pending=n.players.length-t.cashed;
   if(pending&&!confirm(pending+' player'+(pending>1?'s have':' has')+' no chips entered. They will count as $0. Close anyway?'))return;
@@ -373,7 +374,8 @@ main.addEventListener('click',function(e){
   if(act==='closeNight')return closeNight();
   if(act==='newTable'){state.lastClosed=null;store.set('pn_lastClosed',null);return render();}
   if(act==='changeMe'){state.me='';store.set('pn_me','');return render();}
-  if(act==='takeBook'){if(!confirm('Make this phone the Munim\'s phone? '+(state.night.munim||'')+' will keep the book from here and the other phone becomes a viewer.'))return;liveUpdate({munimUid:state.uid});return;}
+  if(act==='imHost'){if(!state.me){toast('Pick your name first');return;}if(!confirm('Set '+state.me+' as tonight\'s host?'))return;liveUpdate({host:state.me});return;}
+  if(act==='imMunim'){var nm3=state.me||state.night.munim||'the Munim';if(!confirm('Make '+nm3+' the Munim and move the book to this phone? Only this phone will approve buy-ins from now on.'))return;var upm={munimUid:state.uid};if(state.me)upm.munim=state.me;liveUpdate(upm);return;}
   if(act==='exportNight'){var en=findHist(t.getAttribute('data-id'));if(en)return showText('Rows for the sheet',exportText(en),'Paste into a new tab. Columns: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');}
   if(act==='shareNight'){var sn=findHist(t.getAttribute('data-id'));if(sn){var txt=summaryText(sn);if(navigator.share)navigator.share({text:txt}).catch(function(){});else showText('Summary',txt,'Copy and paste into the group chat.');}return;}
   if(act==='exportSeason'){var years={};state.history.forEach(function(n){years[(n.date||'').slice(0,4)]=1;});var y=state._year||Object.keys(years).sort().reverse()[0]||'';var s=seasonTotals(y);var lines=['Khiladi\tTotal Haar/Jeet'];s.names.forEach(function(k){lines.push(k+'\t'+(Math.round(s.tot[k]*100)/100));});return showText('Season '+y+' standings',lines.join('\n'),'Same two columns as the Total Haar/Jeet tab.');}
