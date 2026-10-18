@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f3d2e">
+<title>Poker Night Chips</title>
+<style>
+  :root{
+    --felt:#0f3d2e; --felt2:#155a43; --paper:#f7f6f1; --ink:#1a1a1a; --mute:#6b6b6b;
+    --line:#dcdad2; --win:#1b7f3b; --lose:#b3261e; --gold:#d9a441; --card:#ffffff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px}
+  body{min-height:100vh;display:flex;flex-direction:column}
+  header{background:var(--felt);color:#fff;padding:14px 16px 12px;padding-top:calc(14px + env(safe-area-inset-top));position:sticky;top:0;z-index:5}
+  header .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  header h1{font-size:15px;font-weight:600;margin:0;opacity:.85;letter-spacing:.02em}
+  header .sub{font-size:13px;opacity:.75}
+  .total{margin-top:6px;display:flex;justify-content:space-between;align-items:flex-end}
+  .total .label{font-size:13px;opacity:.8}
+  .total .amt{font-size:44px;font-weight:700;line-height:1;letter-spacing:-.02em}
+  .total .small{font-size:13px;opacity:.8;text-align:right}
+  main{flex:1;padding:14px 14px 96px;max-width:560px;width:100%;margin:0 auto}
+  nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:5;padding-bottom:env(safe-area-inset-bottom)}
+  nav button{flex:1;border:0;background:none;padding:10px 4px 8px;font-size:12px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600}
+  nav button .ic{font-size:20px;line-height:1}
+  nav button.on{color:var(--felt)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  h2{font-size:18px;margin:4px 0 10px;font-weight:700}
+  p{margin:6px 0;line-height:1.4}
+  .hint{color:var(--mute);font-size:14px}
+  label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+  input[type=text],input[type=number],input[type=date],select{width:100%;font-size:18px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  input[type=number]{-moz-appearance:textfield}
+  .btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:14px 16px;font-size:17px;font-weight:700;cursor:pointer;background:var(--felt);color:#fff;width:100%}
+  .btn.sec{background:#e9e8e1;color:var(--ink)}
+  .btn.warn{background:#f3e3e1;color:var(--lose)}
+  .btn.sm{width:auto;padding:10px 14px;font-size:15px;border-radius:10px}
+  .btn:disabled{opacity:.4}
+  .row{display:flex;gap:10px;align-items:center}
+  .row > *{flex:1}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;font-size:16px;font-weight:600;cursor:pointer}
+  .chip.on{background:var(--felt);color:#fff;border-color:var(--felt)}
+  /* player rows on the table */
+  .prow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .prow:last-child{border-bottom:0}
+  .prow .name{flex:1;min-width:0}
+  .prow .name b{font-size:18px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prow .name span{font-size:13px;color:var(--mute)}
+  .prow .cnt{font-size:22px;font-weight:700;min-width:34px;text-align:center}
+  .plus{width:56px;height:56px;border-radius:14px;border:0;background:var(--felt);color:#fff;font-size:30px;font-weight:700;cursor:pointer;flex:none}
+  .minus{width:44px;height:56px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--mute);font-size:22px;cursor:pointer;flex:none}
+  .net{font-weight:700;font-size:18px;min-width:84px;text-align:right}
+  .pos{color:var(--win)} .neg{color:var(--lose)}
+  .cashrow{display:grid;grid-template-columns:1fr 92px 72px 84px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+  .cashrow:last-child{border-bottom:0}
+  .cashrow input{padding:10px 8px;font-size:18px;text-align:right}
+  .cashrow .nm b{display:block;font-size:17px}
+  .cashrow .nm span{font-size:12px;color:var(--mute)}
+  .colhead{display:grid;grid-template-columns:1fr 92px 72px 84px;gap:8px;font-size:12px;color:var(--mute);padding-bottom:4px}
+  .colhead div:not(:first-child){text-align:right}
+  .balance{padding:12px 14px;border-radius:12px;font-weight:700;font-size:16px;margin-top:10px}
+  .balance.ok{background:#e4f3e8;color:var(--win)}
+  .balance.bad{background:#f9e3e1;color:var(--lose)}
+  .balance.wait{background:#f1f0ea;color:var(--mute)}
+  .tick{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:20px;flex:none;cursor:pointer}
+  .tick.on{background:var(--win);color:#fff;border-color:var(--win)}
+  .hist{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .hist:last-child{border-bottom:0}
+  .hist b{display:block}
+  .hist span{font-size:13px;color:var(--mute)}
+  textarea{width:100%;height:160px;font-size:13px;font-family:ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:10px;padding:10px}
+  .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  .empty{text-align:center;color:var(--mute);padding:30px 10px}
+  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:8}
+  .sheet.show{display:flex}
+  .sheet .box{background:#fff;width:100%;max-width:560px;margin:0 auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+  .sheet .box h3{margin:0 0 8px;font-size:18px}
+  .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+  .quick button{padding:14px 0;font-size:18px;font-weight:700;border-radius:10px;border:1px solid var(--line);background:#fff}
+  .sticky-note{font-size:13px;color:var(--mute);margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><h1 id="hTitle">Poker Night Chips</h1><div class="sub" id="hSub"></div></div>
+  <div class="total" id="hTotal" style="display:none">
+    <div><div class="label">On the table</div><div class="amt" id="hAmt">$0</div></div>
+    <div class="small" id="hSmall"></div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<nav id="nav">
+  <button data-v="start"><span class="ic">♠️</span>Night</button>
+  <button data-v="table"><span class="ic">💵</span>Buy-ins</button>
+  <button data-v="cash"><span class="ic">🧮</span>Cash out</button>
+  <button data-v="settle"><span class="ic">✅</span>Settle</button>
+  <button data-v="season"><span class="ic">🏆</span>Season</button>
+  <button data-v="hist"><span class="ic">📒</span>History</button>
+</nav>
+
+<div class="sheet" id="sheet"><div class="box" id="sheetBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+// ---------- storage (falls back to memory if the browser blocks it) ----------
+var mem={};
+var store={
+  get:function(k){try{var v=localStorage.getItem(k);return v==null?null:JSON.parse(v);}catch(e){return mem[k]==null?null:JSON.parse(mem[k]);}},
+  set:function(k,v){var s=JSON.stringify(v);try{localStorage.setItem(k,s);}catch(e){}mem[k]=s;},
+  ok:function(){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return true;}catch(e){return false;}}
+};
+var SEED_HISTORY=[{"id":"sheet-2026-01-25-sonit","date":"2026-01-25","host":"Sonit","buyin":50,"players":[{"name":"Abbas","buyins":[50.0],"cashout":162.0,"adj":-0.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0,50.0,50.0],"cashout":113.5,"adj":-0.0,"settled":false},{"name":"Uncle Ji","buyins":[50.0,50.0],"cashout":264.0,"adj":-0.0,"settled":false},{"name":"Sunny","buyins":[50.0,50.0],"cashout":55.0,"adj":-0.0,"settled":false},{"name":"Raj","buyins":[50.0],"cashout":0.0,"adj":-0.0,"settled":false},{"name":"Hemant","buyins":[50.0,50.0,50.0,50.0],"cashout":0.0,"adj":11.5,"settled":false},{"name":"Dev","buyins":[50.0],"cashout":138.0,"adj":-0.0,"settled":false},{"name":"Sonit","buyins":[50.0,50.0],"cashout":83.0,"adj":-0.0,"settled":false},{"name":"Ankur","buyins":[50.0],"cashout":50.0,"adj":-0.0,"settled":false},{"name":"Mayank","buyins":[50.0],"cashout":0.0,"adj":-0.0,"settled":false},{"name":"Mahesh","buyins":[50.0],"cashout":96.0,"adj":-0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-01-13-lohri-special","date":"2026-01-13","host":"Lohri special","buyin":50,"players":[{"name":"Mohit","buyins":[50.0],"cashout":48.0,"adj":-2.0,"settled":false},{"name":"Birju","buyins":[50.0,50.0],"cashout":88.0,"adj":-0.0,"settled":false},{"name":"Mehul","buyins":[50.0,50.0],"cashout":133.0,"adj":-0.0,"settled":false},{"name":"Naveen","buyins":[50.0,50.0],"cashout":0.0,"adj":-0.0,"settled":false},{"name":"Hemant","buyins":[50.0],"cashout":244.0,"adj":4.0,"settled":false},{"name":"Dev","buyins":[50.0,50.0,50.0],"cashout":48.0,"adj":-0.0,"settled":false},{"name":"Mahesh","buyins":[50.0],"cashout":41.0,"adj":-0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-02-22-raj","date":"2026-02-22","host":"Raj","buyin":50,"players":[{"name":"Ankur","buyins":[50.0],"cashout":150,"adj":0,"settled":true},{"name":"Birju","buyins":[50.0,50.0],"cashout":11.5,"adj":0,"settled":true},{"name":"Hemant","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":95,"adj":0,"settled":true},{"name":"Madhu","buyins":[50.0],"cashout":61,"adj":0,"settled":true},{"name":"Mahesh","buyins":[50.0],"cashout":95.5,"adj":0,"settled":true},{"name":"Mehul","buyins":[50.0,50.0,50.0,50.0],"cashout":346,"adj":0,"settled":true},{"name":"Naveen","buyins":[50.0],"cashout":61,"adj":0,"settled":true},{"name":"Raj","buyins":[50.0,50.0],"cashout":40,"adj":0,"settled":true},{"name":"Sonit","buyins":[50.0,50.0],"cashout":39.5,"adj":0,"settled":true},{"name":"Sunny","buyins":[50.0,50.0,50.0],"cashout":200.5,"adj":0,"settled":true}],"log":[],"fromSheet":true},{"id":"sheet-2026-03-08-naveen","date":"2026-03-08","host":"Naveen","buyin":50,"players":[{"name":"Ankur","buyins":[50.0,50.0],"cashout":254,"adj":5,"settled":true},{"name":"Aunty Ji","buyins":[50.0,50.0],"cashout":22,"adj":0,"settled":true},{"name":"Birju","buyins":[50.0,50.0,50.0],"cashout":107,"adj":0,"settled":false},{"name":"Dev","buyins":[50.0],"cashout":162,"adj":5,"settled":true},{"name":"Hemant","buyins":[50.0,50.0],"cashout":31,"adj":5,"settled":true},{"name":"Jenny","buyins":[50.0,50.0,50.0],"cashout":88,"adj":0,"settled":true},{"name":"Madhu","buyins":[50.0,50.0,50.0],"cashout":126,"adj":5,"settled":true},{"name":"Mahesh","buyins":[50.0],"cashout":108,"adj":5,"settled":true},{"name":"Naveen","buyins":[50.0,50.0,50.0],"cashout":89,"adj":0,"settled":true},{"name":"Prerna","buyins":[50.0,50.0],"cashout":49,"adj":0,"settled":true},{"name":"Sonit","buyins":[50.0,50.0],"cashout":164,"adj":5,"settled":true},{"name":"Sunny","buyins":[50.0,50.0],"cashout":203,"adj":5,"settled":true},{"name":"Uncle Ji","buyins":[50.0,50.0,50.0],"cashout":47,"adj":5,"settled":true}],"log":[],"fromSheet":true},{"id":"sheet-2026-04-05-dev","date":"2026-04-05","host":"Dev","buyin":50,"players":[{"name":"Abbas","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":160.0,"adj":5.0,"settled":false},{"name":"Birju","buyins":[50.0,50.0,50.0],"cashout":19.0,"adj":0.0,"settled":false},{"name":"Mahesh","buyins":[50.0,50.0],"cashout":100.0,"adj":5.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0],"cashout":100.0,"adj":0.0,"settled":false},{"name":"Uncle Ji","buyins":[50.0,50.0,50.0,50.0],"cashout":13.0,"adj":0.0,"settled":false},{"name":"Naveen","buyins":[50.0],"cashout":191.0,"adj":0.0,"settled":false},{"name":"Sunny","buyins":[50.0,50.0],"cashout":78.0,"adj":0.0,"settled":false},{"name":"Raj","buyins":[50.0],"cashout":50.0,"adj":0.0,"settled":false},{"name":"Dev","buyins":[50.0,50.0,50.0],"cashout":0.0,"adj":0.0,"settled":false},{"name":"Sonit","buyins":[50.0],"cashout":64.0,"adj":5.0,"settled":false},{"name":"Ankur","buyins":[50.0],"cashout":385.0,"adj":5.0,"settled":false},{"name":"Jenny","buyins":[50.0,50.0,50.0,50.0],"cashout":52.0,"adj":0.0,"settled":false},{"name":"Mayank","buyins":[50.0,50.0],"cashout":0.0,"adj":0.0,"settled":false},{"name":"Aaron","buyins":[50.0],"cashout":357.0,"adj":0.0,"settled":false},{"name":"Naina","buyins":[50.0],"cashout":31.0,"adj":0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-05-03-hemant","date":"2026-05-03","host":"Hemant","buyin":50,"players":[{"name":"Birju","buyins":[50.0,50.0],"cashout":51.0,"adj":0.0,"settled":false},{"name":"Mahesh","buyins":[50.0,50.0,50.0],"cashout":91.0,"adj":0.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0,50.0],"cashout":25.0,"adj":0.0,"settled":false},{"name":"Uncle Ji","buyins":[50.0],"cashout":226.0,"adj":0.0,"settled":false},{"name":"Mayank","buyins":[50.0],"cashout":0.0,"adj":0.0,"settled":false},{"name":"Ojas","buyins":[50.0],"cashout":69.5,"adj":0.0,"settled":false},{"name":"Hemant","buyins":[50.0,50.0],"cashout":141.5,"adj":0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-05-17-sunny","date":"2026-05-17","host":"Sunny","buyin":50,"players":[{"name":"Birju","buyins":[50.0,50.0],"cashout":102.0,"adj":0.0,"settled":false},{"name":"Mahesh","buyins":[50.0,50.0],"cashout":172.0,"adj":6.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0,50.0],"cashout":128.0,"adj":0.0,"settled":false},{"name":"Uncle Ji","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":92.0,"adj":0.0,"settled":false},{"name":"Naveen","buyins":[50.0],"cashout":352.5,"adj":2.5,"settled":false},{"name":"Sunny","buyins":[50.0,50.0,50.0,50.0],"cashout":187.0,"adj":0.0,"settled":false},{"name":"Sonit","buyins":[50.0,50.0,50.0],"cashout":184.0,"adj":6.0,"settled":false},{"name":"Ankur","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":31.0,"adj":0.0,"settled":false},{"name":"Hemant","buyins":[50.0,50.0],"cashout":41.0,"adj":0.0,"settled":false},{"name":"Madhu","buyins":[50.0,50.0],"cashout":100.0,"adj":0.0,"settled":false},{"name":"Jenny","buyins":[50.0],"cashout":65.0,"adj":0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-05-31-madhu","date":"2026-05-31","host":"Madhu","buyin":50,"players":[{"name":"Abbas","buyins":[50.0],"cashout":109.0,"adj":10.0,"settled":false},{"name":"Birju","buyins":[50.0,50.0],"cashout":0.0,"adj":0.0,"settled":false},{"name":"Mehul","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":0.0,"adj":10.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0,50.0,50.0],"cashout":25.0,"adj":0.0,"settled":false},{"name":"Uncle Ji","buyins":[50.0],"cashout":119.0,"adj":0.0,"settled":false},{"name":"Madhu","buyins":[50.0,50.0,50.0],"cashout":77.0,"adj":0.0,"settled":false},{"name":"Naveen","buyins":[50.0,50.0,50.0,50.0],"cashout":172.0,"adj":0.0,"settled":false},{"name":"Sunny","buyins":[50.0,50.0,50.0],"cashout":146.0,"adj":0.0,"settled":false},{"name":"Raj","buyins":[50.0],"cashout":173.0,"adj":0.0,"settled":false},{"name":"Prerna","buyins":[50.0,50.0],"cashout":48.0,"adj":0.0,"settled":false},{"name":"Ankur","buyins":[50.0],"cashout":298.0,"adj":0.0,"settled":false},{"name":"Jenny","buyins":[50.0,50.0],"cashout":253.0,"adj":0.0,"settled":false},{"name":"Mayank","buyins":[50.0],"cashout":30.0,"adj":0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-06-28-uncle-ji","date":"2026-06-28","host":"Uncle Ji","buyin":50,"players":[{"name":"Birju","buyins":[50.0,50.0],"cashout":186,"adj":0,"settled":true},{"name":"Aunty Ji","buyins":[50.0,50.0],"cashout":0,"adj":0,"settled":true},{"name":"Uncle Ji","buyins":[50.0,50.0,50.0,50.0,50.0,50.0],"cashout":212,"adj":0,"settled":true},{"name":"Madhu","buyins":[50.0,50.0],"cashout":50,"adj":0,"settled":false},{"name":"Naveen","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":85,"adj":0,"settled":true},{"name":"Hemant","buyins":[50.0,50.0,50.0,50.0],"cashout":50,"adj":0,"settled":true},{"name":"Dev","buyins":[50.0,50.0],"cashout":0,"adj":0,"settled":true},{"name":"Prerna","buyins":[50.0],"cashout":134,"adj":0,"settled":true},{"name":"Ankur","buyins":[50.0,50.0],"cashout":568,"adj":0,"settled":true},{"name":"Sonit","buyins":[50.0,50.0],"cashout":117,"adj":0,"settled":true}],"log":[],"fromSheet":true},{"id":"sheet-2026-07-19-hemant","date":"2026-07-19","host":"Hemant","buyin":50,"players":[{"name":"Abbas","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":104.0,"adj":0.0,"settled":false},{"name":"Birju","buyins":[50.0,50.0,50.0],"cashout":39.0,"adj":0.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":91.0,"adj":0.0,"settled":false},{"name":"Hemant","buyins":[50.0],"cashout":354.0,"adj":0.0,"settled":false},{"name":"Prerna","buyins":[50.0],"cashout":91.0,"adj":0.0,"settled":false},{"name":"Sonit","buyins":[50.0,50.0,50.0],"cashout":0.0,"adj":0.0,"settled":false},{"name":"Jenny","buyins":[50.0,50.0,50.0],"cashout":51.0,"adj":0.0,"settled":false},{"name":"Mahesh","buyins":[50.0],"cashout":31.0,"adj":0.0,"settled":false},{"name":"Ojas","buyins":[50.0],"cashout":374.0,"adj":0.0,"settled":false},{"name":"Kailash","buyins":[50.0,50.0],"cashout":0.0,"adj":0.0,"settled":false},{"name":"Uncle Ji","buyins":[50.0,50.0,50.0],"cashout":147.5,"adj":0.0,"settled":false},{"name":"Madhu","buyins":[50.0],"cashout":224.0,"adj":0.0,"settled":false},{"name":"Naveen","buyins":[50.0],"cashout":180.0,"adj":5.0,"settled":false},{"name":"Mehul","buyins":[50.0],"cashout":90.0,"adj":0.0,"settled":false},{"name":"Sunny","buyins":[50.0,50.0,50.0],"cashout":77.5,"adj":0.0,"settled":false},{"name":"Raj","buyins":[50.0,50.0],"cashout":36.0,"adj":0.0,"settled":false},{"name":"Ankur","buyins":[50.0,50.0],"cashout":0.0,"adj":0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-07-19-hemant-round-2","date":"2026-07-19","host":"Hemant (round 2)","buyin":50,"players":[{"name":"Abbas","buyins":[50.0],"cashout":134,"adj":0,"settled":false},{"name":"Birju","buyins":[50.0],"cashout":33,"adj":0,"settled":false},{"name":"Hemant","buyins":[50.0],"cashout":42,"adj":0,"settled":false},{"name":"Prerna","buyins":[50.0],"cashout":44,"adj":0,"settled":false},{"name":"Jenny","buyins":[50.0,50.0],"cashout":49,"adj":0,"settled":false},{"name":"Mahesh","buyins":[50.0],"cashout":36,"adj":0,"settled":false},{"name":"Ojas","buyins":[50.0],"cashout":46,"adj":0,"settled":false},{"name":"Uncle Ji","buyins":[50.0],"cashout":27,"adj":0,"settled":false},{"name":"Madhu","buyins":[50.0],"cashout":33,"adj":0,"settled":false},{"name":"Naveen","buyins":[50.0],"cashout":115,"adj":0,"settled":false},{"name":"Sunny","buyins":[50.0],"cashout":47,"adj":0,"settled":false},{"name":"Ankur","buyins":[50.0],"cashout":44,"adj":0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-08-09-sonit","date":"2026-08-09","host":"Sonit","buyin":50,"players":[{"name":"Birju","buyins":[50.0,50.0,50.0,50.0,50.0,50.0,50.0,50.0,50.0],"cashout":209.0,"adj":0.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0,50.0,50.0,50.0],"cashout":42.0,"adj":0.0,"settled":false},{"name":"Hemant","buyins":[50.0],"cashout":169.5,"adj":0.0,"settled":false},{"name":"Sonit","buyins":[50.0,50.0],"cashout":24.5,"adj":0.0,"settled":false},{"name":"Mahesh","buyins":[50.0,50.0],"cashout":0.0,"adj":0.0,"settled":false},{"name":"Uncle Ji","buyins":[50.0,50.0],"cashout":195.0,"adj":0.0,"settled":false},{"name":"Naveen","buyins":[50.0,50.0],"cashout":214.0,"adj":5.0,"settled":false},{"name":"Mehul","buyins":[50.0,50.0,50.0],"cashout":39.0,"adj":0.0,"settled":false},{"name":"Sunny","buyins":[50.0,50.0],"cashout":160.0,"adj":0.0,"settled":false},{"name":"Ankur","buyins":[50.0],"cashout":343.0,"adj":0.0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-08-23-mehul","date":"2026-08-23","host":"Mehul","buyin":50,"players":[{"name":"Birju","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":223,"adj":0,"settled":false},{"name":"Aunty Ji","buyins":[50.0,50.0,50.0],"cashout":28,"adj":0,"settled":false},{"name":"Hemant","buyins":[50.0],"cashout":289,"adj":0,"settled":false},{"name":"Uncle Ji","buyins":[50.0],"cashout":74,"adj":0,"settled":false},{"name":"Naveen","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":111,"adj":0,"settled":false},{"name":"Mehul","buyins":[50.0],"cashout":175,"adj":0,"settled":false},{"name":"Madhu","buyins":[50.0,50.0,50.0],"cashout":50,"adj":0,"settled":false}],"log":[],"fromSheet":true},{"id":"sheet-2026-09-27-hemant","date":"2026-09-27","host":"Hemant","buyin":50,"players":[{"name":"Aunty Ji","buyins":[50.0,50.0],"cashout":0,"adj":6,"settled":true},{"name":"Uncle Ji","buyins":[50.0,50.0],"cashout":114.5,"adj":6,"settled":true},{"name":"Hemant","buyins":[50.0,50.0,50.0,50.0],"cashout":221,"adj":6,"settled":true},{"name":"Gaurav","buyins":[50.0,50.0,50.0],"cashout":32,"adj":6,"settled":true},{"name":"Ankur","buyins":[50.0,50.0,50.0,50.0],"cashout":112.5,"adj":6,"settled":true},{"name":"Prerna","buyins":[50.0,50.0,50.0],"cashout":212,"adj":6,"settled":true},{"name":"Mehul","buyins":[50.0,50.0],"cashout":169,"adj":6,"settled":true},{"name":"Madhu","buyins":[50.0],"cashout":237.5,"adj":6,"settled":true},{"name":"Gagan","buyins":[50.0,50.0],"cashout":60,"adj":6,"settled":false},{"name":"Abbas","buyins":[50.0,50.0,50.0],"cashout":200,"adj":6,"settled":true}],"log":[],"fromSheet":true},{"id":"sheet-2026-10-04-mehul","date":"2026-10-04","host":"Mehul","buyin":50,"players":[{"name":"Birju","buyins":[50.0,50.0,50.0,50.0,50.0],"cashout":103.0,"adj":0.0,"settled":false},{"name":"Aunty Ji","buyins":[50.0],"cashout":251.0,"adj":0.0,"settled":true},{"name":"Hemant","buyins":[50.0,50.0,50.0,50.0],"cashout":173.0,"adj":0.0,"settled":true},{"name":"Uncle Ji","buyins":[50.0,50.0,50.0,50.0],"cashout":0.0,"adj":0.0,"settled":true},{"name":"Naveen","buyins":[50.0,50.0,50.0],"cashout":162.0,"adj":0.0,"settled":false},{"name":"Mehul","buyins":[50.0],"cashout":532.0,"adj":0.0,"settled":true},{"name":"Dev","buyins":[50.0,50.0,50.0],"cashout":119.0,"adj":0.0,"settled":true},{"name":"Abbas","buyins":[50.0,50.0,50.0,50.0,50.0,50.0,50.0,50.0],"cashout":58.0,"adj":0.0,"settled":true},{"name":"Sonit","buyins":[50.0],"cashout":0.0,"adj":5.0,"settled":true},{"name":"Sunny","buyins":[50.0,50.0],"cashout":93.0,"adj":0.0,"settled":false},{"name":"Raj","buyins":[50.0],"cashout":17.5,"adj":0.0,"settled":false},{"name":"Ankur","buyins":[50.0,50.0,50.0,50.0],"cashout":260.5,"adj":0.0,"settled":true},{"name":"Mayank","buyins":[50.0],"cashout":129.0,"adj":10.0,"settled":true}],"log":[],"fromSheet":true}];
+var ROSTER_DEFAULT=["Ankur","Abbas","Aunty Ji","Uncle Ji","Birju","Dev","Hemant","Madhu","Mahesh","Mayank","Mehul","Naveen","Raj","Sonit","Sunny","Aaron","Gagan","Gaurav","Jenny","Kailash","Mohit","Naina","Ojas","Prerna"];
+
+var state={
+  night: store.get('pn_night'),          // current open night or null
+  history: store.get('pn_history')||[],  // closed nights
+  roster: store.get('pn_roster')||ROSTER_DEFAULT,
+  view: 'start'
+};
+function save(){store.set('pn_night',state.night);store.set('pn_history',state.history);store.set('pn_roster',state.roster);}
+function money(n){var neg=n<0;n=Math.abs(n);var s=(Math.round(n*100)/100).toString();if(s.indexOf('.')>-1){s=s.replace(/\.?0+$/,'');}return (neg?'-':'')+'$'+s;}
+function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function prettyDate(iso){if(!iso)return'';var p=iso.split('-');var d=new Date(p[0],p[1]-1,p[2]);return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
+function toast(t){var el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},1600);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+// ---------- calculations (same as the sheet) ----------
+function pBuyin(p){return p.buyins.reduce(function(a,b){return a+b;},0);}
+function pNet(p){if(p.cashout==null)return null;return p.cashout-pBuyin(p)-num(p.adj);}
+function totals(n){var t={buy:0,cash:0,adj:0,count:0,cashed:0};n.players.forEach(function(p){t.buy+=pBuyin(p);t.count+=p.buyins.length;t.adj+=num(p.adj);if(p.cashout!=null){t.cash+=p.cashout;t.cashed++;}});return t;}
+
+// ---------- header ----------
+function header(){
+  var n=state.night,T=document.getElementById('hTotal');
+  if(!n){document.getElementById('hSub').textContent='';T.style.display='none';return;}
+  var t=totals(n);
+  document.getElementById('hSub').textContent=prettyDate(n.date)+(n.host?' · '+n.host:'');
+  T.style.display='flex';
+  document.getElementById('hAmt').textContent=money(t.buy);
+  document.getElementById('hSmall').innerHTML=t.count+' buy-ins · '+n.players.length+' players<br>'+(t.cashed?('cashed out '+money(t.cash)):'');
+}
+
+// ---------- views ----------
+var views={};
+views.start=function(){
+  var n=state.night;
+  if(n){
+    return '<div class="card"><h2>Tonight is open</h2><p>'+esc(prettyDate(n.date))+(n.host?' at '+esc(n.host)+"'s":'')+'. Standard buy-in '+money(n.buyin)+'. '+n.players.length+' players.</p>'+
+    '<div class="row" style="margin-top:10px"><button class="btn" data-go="table">Go to buy-ins</button></div>'+
+    '<div class="row" style="margin-top:10px"><button class="btn sec" data-act="addPlayers">Add players</button><button class="btn sec" data-act="editNight">Edit night</button></div>'+
+    '<div class="row" style="margin-top:10px"><button class="btn warn" data-act="closeNight">Finish night and save to history</button></div>'+
+    '<p class="sticky-note">Finish when everyone has cashed out. The night moves to History and a new one can start.</p></div>';
+  }
+  var sel=state._sel||{};
+  var chips=state.roster.map(function(r){return '<span class="chip'+(sel[r]?' on':'')+'" data-chip="'+esc(r)+'">'+esc(r)+'</span>';}).join('');
+  return '<div class="card"><h2>Start a night</h2>'+
+  '<label>Date</label><input type="date" id="fDate" value="'+(state._date||todayISO())+'">'+
+  '<label>Host</label><input type="text" id="fHost" placeholder="Who is hosting" value="'+esc(state._host||'')+'">'+
+  '<label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="fBuy" value="'+(state._buy||50)+'">'+
+  '<label>Tap who is playing</label><div class="chips">'+chips+'</div>'+
+  '<div class="row" style="margin-top:12px"><input type="text" id="fNew" placeholder="Add a new name"><button class="btn sm sec" data-act="addName" style="flex:0 0 auto">Add</button></div>'+
+  '<div style="margin-top:14px"><button class="btn" data-act="startNight">Start night</button></div>'+
+  (store.ok()?'':'<p class="sticky-note">This browser is not keeping data between visits. Export before you close the page.</p>')+
+  '</div>';
+};
+views.table=function(){
+  var n=state.night;if(!n)return noNight();
+  if(!n.players.length)return '<div class="card"><div class="empty">No players yet.</div><button class="btn sec" data-act="addPlayers">Add players</button></div>';
+  var rows=n.players.map(function(p,i){
+    var b=pBuyin(p);var odd=p.buyins.some(function(x){return x!==n.buyin;});
+    return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+money(b)+(odd?' (custom amounts)':'')+'</span></div>'+
+    '<div class="cnt">'+p.buyins.length+'</div>'+
+    '<button class="minus" data-undo="'+i+'" title="Remove last buy-in" '+(p.buyins.length?'':'disabled')+'>−</button>'+
+    '<button class="plus" data-buy="'+i+'">+</button></div>';
+  }).join('');
+  return '<div class="card"><h2>Buy-ins</h2><p class="hint">Tap + for one buy-in of '+money(n.buyin)+'. Press and hold + for a different amount. − removes the last one.</p>'+rows+'</div>'+
+  '<div class="row"><button class="btn sec" data-act="addPlayers">Add player</button><button class="btn sec" data-act="undoLast" '+(n.log&&n.log.length?'':'disabled')+'>Undo last</button></div>';
+};
+views.cash=function(){
+  var n=state.night;if(!n)return noNight();
+  if(!n.players.length)return '<div class="card"><div class="empty">No players yet.</div></div>';
+  var t=totals(n);
+  var rows=n.players.map(function(p,i){
+    var net=pNet(p);
+    return '<div class="cashrow"><div class="nm"><b>'+esc(p.name)+'</b><span>in '+money(pBuyin(p))+'</span></div>'+
+    '<input type="number" inputmode="decimal" placeholder="chips" data-cash="'+i+'" value="'+(p.cashout==null?'':p.cashout)+'">'+
+    '<input type="number" inputmode="decimal" placeholder="0" data-adj="'+i+'" value="'+(p.adj?p.adj:'')+'">'+
+    '<div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';
+  }).join('');
+  var bal='';
+  if(t.cashed===0)bal='<div class="balance wait">Enter end chips to see the balance.</div>';
+  else{
+    var diff=Math.round((t.cash-t.buy)*100)/100;
+    var pending=n.players.length-t.cashed;
+    if(pending>0)bal='<div class="balance wait">'+pending+' player'+(pending>1?'s':'')+' still to cash out. So far '+money(t.cash)+' out of '+money(t.buy)+'.</div>';
+    else if(Math.abs(diff)<0.005)bal='<div class="balance ok">Balances. '+money(t.cash)+' out, '+money(t.buy)+' in.</div>';
+    else bal='<div class="balance bad">Off by '+money(diff)+'. Chips out '+money(t.cash)+', buy-ins '+money(t.buy)+'. Recount before anyone leaves.</div>';
+  }
+  return '<div class="card"><h2>Cash out</h2><p class="hint">End chips in dollars. Penalty is a late fee or any adjustment; it is taken off the player\'s net.</p>'+
+  '<div class="colhead"><div>Player</div><div>End chips</div><div>Penalty</div><div>Net</div></div>'+rows+bal+'</div>';
+};
+views.settle=function(){
+  var n=state.night;if(!n)return noNight();
+  var ps=n.players.slice().sort(function(a,b){return (pNet(b)==null?-1e9:pNet(b))-(pNet(a)==null?-1e9:pNet(a));});
+  var rows=ps.map(function(p){
+    var i=n.players.indexOf(p);var net=pNet(p);
+    return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+p.buyins.length+' buy-in'+(p.buyins.length==1?'':'s')+' · '+money(pBuyin(p))+(p.cashout==null?'':' · out '+money(p.cashout))+(num(p.adj)?' · penalty '+money(num(p.adj)):'')+'</span></div>'+
+    '<div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div>'+
+    '<button class="tick'+(p.settled?' on':'')+'" data-settle="'+i+'" title="Settled">'+(p.settled?'✓':'')+'</button></div>';
+  }).join('');
+  var t=totals(n);var done=n.players.filter(function(p){return p.settled;}).length;
+  return '<div class="card"><h2>Settle up</h2><p class="hint">Sorted by net. Tap the box when a player has paid or been paid. '+done+' of '+n.players.length+' settled.</p>'+rows+'</div>'+
+  '<div class="card"><p><b>Totals.</b> In '+money(t.buy)+' · out '+money(t.cash)+' · penalties '+money(t.adj)+'</p>'+
+  '<div class="row"><button class="btn sec" data-act="export">Copy for the sheet</button><button class="btn sec" data-act="share">Share summary</button></div></div>';
+};
+views.season=function(){
+  var all=state.history.slice();
+  if(state.night&&totals(state.night).cashed>0)all.push(state.night);
+  var years={};all.forEach(function(n){years[(n.date||'').slice(0,4)]=1;});
+  var ylist=Object.keys(years).sort().reverse();
+  var y=state._year||ylist[0]||'';
+  var tot={},games={},wins={},best={},last='';
+  all.forEach(function(n){if((n.date||'').slice(0,4)!==y)return;if(n.date>last)last=n.date;n.players.forEach(function(p){var net=pNet(p);if(net==null)return;tot[p.name]=(tot[p.name]||0)+net;games[p.name]=(games[p.name]||0)+1;if(net>0)wins[p.name]=(wins[p.name]||0)+1;if(best[p.name]==null||net>best[p.name])best[p.name]=net;});});
+  var names=Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];});
+  if(!names.length)return '<div class="card"><div class="empty">No finished nights yet for '+esc(y)+'.</div></div>';
+  var chips=ylist.length>1?'<div class="chips" style="margin-bottom:10px">'+ylist.map(function(v){return '<span class="chip'+(v===y?' on':'')+'" data-year="'+v+'">'+v+'</span>';}).join('')+'</div>':'';
+  var rows=names.map(function(nm,i){var v=tot[nm];return '<div class="prow"><div class="cnt" style="min-width:28px;font-size:15px;color:var(--mute)">'+(i+1)+'</div><div class="name"><b>'+esc(nm)+'</b><span>'+games[nm]+' night'+(games[nm]==1?'':'s')+' · won '+(wins[nm]||0)+' · best '+money(best[nm])+'</span></div><div class="net '+(v>=0?'pos':'neg')+'">'+money(v)+'</div></div>';}).join('');
+  var sum=names.reduce(function(a,k){return a+tot[k];},0);
+  return '<div class="card"><h2>Season '+esc(y)+'</h2><p class="hint">Who is where so far. Total of every night\'s net, winners first. Through '+esc(prettyDate(last))+'.</p>'+chips+rows+
+  '<p class="sticky-note">All players together: '+money(sum)+'. A number other than zero is the sum of nights that did not balance plus kitty money.</p></div>'+
+  '<div class="card"><button class="btn sec" data-act="exportSeason">Copy season table for the sheet</button></div>';
+};
+views.hist=function(){
+  var h=state.history;
+  if(!h.length)return '<div class="card"><div class="empty">No finished nights yet. Finish a night from the Night tab and it will appear here.</div></div>';
+  var rows=h.slice().sort(function(a,b){return (b.date||'')<(a.date||'')?-1:((b.date||'')>(a.date||'')?1:0);}).map(function(n){
+    var t=totals(n);var id=n.id;var diff=Math.round((t.cash-t.buy)*100)/100;
+    return '<div class="hist" data-open="'+id+'"><div><b>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</b><span>'+n.players.length+' players · '+money(t.buy)+' in · '+money(t.cash)+' out'+(Math.abs(diff)>0.005?' · off '+money(diff):'')+(n.fromSheet?' · from the sheet':'')+'</span></div><span>›</span></div>';
+  }).join('');
+  return '<div class="card"><h2>History</h2><p class="hint">Kept on this phone. The 2026 games from the Google Sheet are loaded. Open a night to see every player\'s net.</p>'+rows+'</div>'+
+  '<div class="card"><button class="btn sec" data-act="exportAll">Copy all nights for the sheet</button></div>';
+};
+function noNight(){return '<div class="card"><div class="empty">No night open.</div><button class="btn" data-go="start">Start a night</button></div>';}
+
+// ---------- export ----------
+function exportText(n){
+  var lines=[['Player','Buy-in Amount','Total #','Total Buy-in','Cash-out','Late Penalty','Haar/Jeet','Settled'].join('\t')];
+  n.players.forEach(function(p){var net=pNet(p);lines.push([p.name,n.buyin,p.buyins.length,pBuyin(p),p.cashout==null?'':p.cashout,num(p.adj)||'',net==null?'':Math.round(net*100)/100,p.settled?'settled':''].join('\t'));});
+  var t=totals(n);lines.push(['Total','',t.count,t.buy,t.cash,t.adj,Math.round((t.cash-t.buy-t.adj)*100)/100,''].join('\t'));
+  return lines.join('\n');
+}
+function summaryText(n){
+  var t=totals(n);var out=['Poker night '+prettyDate(n.date)+(n.host?' at '+n.host+"'s":'')];
+  n.players.slice().sort(function(a,b){return (pNet(b)||0)-(pNet(a)||0);}).forEach(function(p){var net=pNet(p);out.push(p.name+': '+(net==null?'not cashed out':money(net))+(p.settled?' (settled)':''));});
+  out.push('In '+money(t.buy)+', out '+money(t.cash)+(Math.abs(t.cash-t.buy)>0.005?', off by '+money(t.cash-t.buy):', balanced'));
+  return out.join('\n');
+}
+function showText(title,text,note){
+  openSheet('<h3>'+esc(title)+'</h3><p class="hint">'+esc(note||'')+'</p><textarea id="exp" readonly>'+esc(text)+'</textarea><div class="row" style="margin-top:10px"><button class="btn" id="copyBtn">Copy</button><button class="btn sec" id="closeSheet">Close</button></div>');
+  var ta=document.getElementById('exp');ta.focus();ta.select();
+  document.getElementById('copyBtn').onclick=function(){
+    var done=false;
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast('Copied');},function(){fallback();});}
+    else fallback();
+    function fallback(){try{ta.select();done=document.execCommand('copy');}catch(e){}toast(done?'Copied':'Select the text and copy');}
+  };
+}
+function openSheet(html){var s=document.getElementById('sheet');document.getElementById('sheetBox').innerHTML=html;s.classList.add('show');var c=document.getElementById('closeSheet');if(c)c.onclick=closeSheet;}
+function closeSheet(){document.getElementById('sheet').classList.remove('show');}
+
+// ---------- actions ----------
+function render(){
+  header();
+  document.getElementById('main').innerHTML=views[state.view]();
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===state.view);});
+  window.scrollTo(0,0);
+}
+function go(v){state.view=v;render();}
+function startNight(){
+  var date=document.getElementById('fDate').value||todayISO();
+  var host=document.getElementById('fHost').value.trim();
+  var buy=num(document.getElementById('fBuy').value)||50;
+  var sel=state._sel||{};var names=state.roster.filter(function(r){return sel[r];});
+  if(!names.length){toast('Tap at least one player');return;}
+  state.night={id:Date.now(),date:date,host:host,buyin:buy,players:names.map(function(nm){return {name:nm,buyins:[],cashout:null,adj:0,settled:false};}),log:[]};
+  state._sel={};state._host='';save();go('table');
+}
+function addBuy(i,amount){var n=state.night,p=n.players[i];p.buyins.push(amount);n.log.push({i:i,a:amount});save();render();toast(p.name+' +'+money(amount));}
+function removeBuy(i){var n=state.night,p=n.players[i];if(!p.buyins.length)return;var a=p.buyins.pop();for(var k=n.log.length-1;k>=0;k--){if(n.log[k].i===i&&n.log[k].a===a){n.log.splice(k,1);break;}}save();render();toast(p.name+' −'+money(a));}
+function undoLast(){var n=state.night;if(!n.log.length)return;var l=n.log.pop();var p=n.players[l.i];var k=p.buyins.lastIndexOf(l.a);if(k>-1)p.buyins.splice(k,1);save();render();toast('Undid '+p.name+' '+money(l.a));}
+function customBuy(i){
+  var n=state.night,p=n.players[i];var b=n.buyin;
+  openSheet('<h3>'+esc(p.name)+': other amount</h3><div class="quick"><button data-q="'+(b/2)+'">'+money(b/2)+'</button><button data-q="'+b+'">'+money(b)+'</button><button data-q="'+(b*2)+'">'+money(b*2)+'</button><button data-q="'+(b*3)+'">'+money(b*3)+'</button></div>'+
+  '<input type="number" inputmode="decimal" id="cAmt" placeholder="Amount in dollars"><div class="row" style="margin-top:10px"><button class="btn" id="cOk">Add buy-in</button><button class="btn sec" id="closeSheet">Cancel</button></div>');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-q]'),function(q){q.onclick=function(){closeSheet();addBuy(i,num(q.getAttribute('data-q')));};});
+  document.getElementById('cOk').onclick=function(){var a=num(document.getElementById('cAmt').value);if(a<=0){toast('Enter an amount');return;}closeSheet();addBuy(i,a);};
+  setTimeout(function(){document.getElementById('cAmt').focus();},50);
+}
+function addPlayersSheet(){
+  var n=state.night;var have={};n.players.forEach(function(p){have[p.name]=1;});
+  var chips=state.roster.filter(function(r){return !have[r];}).map(function(r){return '<span class="chip" data-add="'+esc(r)+'">'+esc(r)+'</span>';}).join('');
+  openSheet('<h3>Add players</h3><div class="chips">'+(chips||'<span class="hint">Everyone on the roster is already in.</span>')+'</div><div class="row" style="margin-top:12px"><input type="text" id="aNew" placeholder="New name"><button class="btn sm sec" id="aAdd" style="flex:0 0 auto">Add</button></div><div style="margin-top:12px"><button class="btn sec" id="closeSheet">Done</button></div>');
+  function addName(nm){nm=nm.trim();if(!nm)return;if(state.roster.indexOf(nm)<0)state.roster.push(nm);if(!have[nm]){n.players.push({name:nm,buyins:[],cashout:null,adj:0,settled:false});have[nm]=1;}save();render();toast(nm+' added');}
+  Array.prototype.forEach.call(document.querySelectorAll('[data-add]'),function(c){c.onclick=function(){addName(c.getAttribute('data-add'));c.remove();};});
+  document.getElementById('aAdd').onclick=function(){var v=document.getElementById('aNew');addName(v.value);v.value='';};
+}
+function editNight(){
+  var n=state.night;
+  openSheet('<h3>Edit night</h3><label>Date</label><input type="date" id="eDate" value="'+n.date+'"><label>Host</label><input type="text" id="eHost" value="'+esc(n.host)+'"><label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="eBuy" value="'+n.buyin+'"><div class="row" style="margin-top:12px"><button class="btn" id="eOk">Save</button><button class="btn sec" id="closeSheet">Cancel</button></div><div style="margin-top:14px"><button class="btn warn" id="eDel">Delete this night</button></div>');
+  document.getElementById('eOk').onclick=function(){n.date=document.getElementById('eDate').value||n.date;n.host=document.getElementById('eHost').value.trim();n.buyin=num(document.getElementById('eBuy').value)||n.buyin;save();closeSheet();render();};
+  document.getElementById('eDel').onclick=function(){if(confirm('Delete tonight and all its buy-ins?')){state.night=null;save();closeSheet();go('start');}};
+}
+function closeNight(){
+  var n=state.night;var t=totals(n);var pending=n.players.length-t.cashed;
+  var msg=pending?pending+' player'+(pending>1?'s have':' has')+' no cash-out entered. Finish anyway?':'Finish the night and move it to History?';
+  if(!confirm(msg))return;
+  state.history.push(n);state.night=null;save();go('hist');toast('Saved to history');
+}
+function openHist(id){
+  var n=null;state.history.forEach(function(x){if(String(x.id)===String(id))n=x;});if(!n)return;
+  var t=totals(n);
+  var rows=n.players.slice().sort(function(a,b){return (pNet(b)||0)-(pNet(a)||0);}).map(function(p){var net=pNet(p);return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+p.buyins.length+' × in '+money(pBuyin(p))+' · out '+(p.cashout==null?'—':money(p.cashout))+'</span></div><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';}).join('');
+  openSheet('<h3>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</h3><p class="hint">In '+money(t.buy)+' · out '+money(t.cash)+'</p><div style="max-height:45vh;overflow:auto">'+rows+'</div><div class="row" style="margin-top:12px"><button class="btn" id="hExp">Copy for the sheet</button><button class="btn sec" id="hReopen">Reopen</button></div><div class="row" style="margin-top:10px"><button class="btn warn" id="hDel">Delete</button><button class="btn sec" id="closeSheet">Close</button></div>');
+  document.getElementById('hExp').onclick=function(){showText('Rows for the sheet',exportText(n),'Paste into a new tab. Columns match: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');};
+  document.getElementById('hReopen').onclick=function(){if(state.night&&!confirm('A night is already open. Replace it with this one?'))return;state.history=state.history.filter(function(x){return x!==n;});state.night=n;save();closeSheet();go('table');};
+  document.getElementById('hDel').onclick=function(){if(confirm('Delete this night from history?')){state.history=state.history.filter(function(x){return x!==n;});save();closeSheet();render();}};
+}
+
+// ---------- events ----------
+document.getElementById('nav').addEventListener('click',function(e){var b=e.target.closest('button');if(b)go(b.getAttribute('data-v'));});
+document.getElementById('sheet').addEventListener('click',function(e){if(e.target.id==='sheet')closeSheet();});
+var pressTimer=null,longPressed=false;
+var main=document.getElementById('main');
+main.addEventListener('click',function(e){
+  var t=e.target.closest('[data-go],[data-act],[data-chip],[data-buy],[data-undo],[data-settle],[data-open]');if(!t)return;
+  if(t.hasAttribute('data-go'))return go(t.getAttribute('data-go'));
+  if(t.hasAttribute('data-chip')){state._sel=state._sel||{};var nm=t.getAttribute('data-chip');state._sel[nm]=!state._sel[nm];state._date=document.getElementById('fDate').value;state._host=document.getElementById('fHost').value;state._buy=document.getElementById('fBuy').value;return render();}
+  if(t.hasAttribute('data-buy')){if(longPressed){longPressed=false;return;}return addBuy(num(t.getAttribute('data-buy')),state.night.buyin);}
+  if(t.hasAttribute('data-undo'))return removeBuy(num(t.getAttribute('data-undo')));
+  if(t.hasAttribute('data-settle')){var p=state.night.players[num(t.getAttribute('data-settle'))];p.settled=!p.settled;save();return render();}
+  if(t.hasAttribute('data-open'))return openHist(t.getAttribute('data-open'));
+  if(t.hasAttribute('data-year')){state._year=t.getAttribute('data-year');return render();}
+  var act=t.getAttribute('data-act');
+  if(act==='startNight')return startNight();
+  if(act==='addName'){var v=document.getElementById('fNew');var nm2=v.value.trim();if(!nm2)return;if(state.roster.indexOf(nm2)<0)state.roster.push(nm2);state._sel=state._sel||{};state._sel[nm2]=true;state._date=document.getElementById('fDate').value;state._host=document.getElementById('fHost').value;state._buy=document.getElementById('fBuy').value;save();return render();}
+  if(act==='addPlayers')return addPlayersSheet();
+  if(act==='editNight')return editNight();
+  if(act==='closeNight')return closeNight();
+  if(act==='undoLast')return undoLast();
+  if(act==='export')return showText('Rows for the sheet',exportText(state.night),'Paste into a new tab. Columns match: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');
+  if(act==='exportSeason'){var all=state.history.slice();if(state.night&&totals(state.night).cashed>0)all.push(state.night);var y=state._year||'';var tot={};all.forEach(function(n){if(y&&(n.date||'').slice(0,4)!==y)return;n.players.forEach(function(p){var net=pNet(p);if(net!=null)tot[p.name]=(tot[p.name]||0)+net;});});var lines=['Khiladi\tTotal Haar/Jeet'];Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];}).forEach(function(k){lines.push(k+'\t'+(Math.round(tot[k]*100)/100));});return showText('Season table',lines.join('\n'),'Same two columns as the Total Haar/Jeet tab.');}
+  if(act==='exportAll'){var all=state.history.map(function(n){return prettyDate(n.date)+(n.host?' - '+n.host:'')+'\n'+exportText(n);}).join('\n\n');return showText('All nights',all,'One block per night, in the sheet\'s column order.');}
+  if(act==='share'){var txt=summaryText(state.night);if(navigator.share){navigator.share({text:txt}).catch(function(){});}else showText('Summary',txt,'Copy and paste into the group chat.');}
+});
+// long press on + for a custom amount
+function startPress(e){var t=e.target.closest('[data-buy]');if(!t)return;longPressed=false;pressTimer=setTimeout(function(){longPressed=true;if(navigator.vibrate)navigator.vibrate(20);customBuy(num(t.getAttribute('data-buy')));},500);}
+function endPress(){clearTimeout(pressTimer);}
+main.addEventListener('touchstart',startPress,{passive:true});main.addEventListener('touchend',endPress);main.addEventListener('touchmove',endPress,{passive:true});main.addEventListener('touchcancel',endPress);
+main.addEventListener('mousedown',startPress);main.addEventListener('mouseup',endPress);main.addEventListener('mouseleave',endPress);
+main.addEventListener('contextmenu',function(e){if(e.target.closest('[data-buy]'))e.preventDefault();});
+// cash-out inputs
+main.addEventListener('input',function(e){
+  var t=e.target;var n=state.night;if(!n)return;
+  if(t.hasAttribute('data-cash')){var p=n.players[num(t.getAttribute('data-cash'))];p.cashout=t.value===''?null:num(t.value);save();refreshCashNets();}
+  if(t.hasAttribute('data-adj')){var p2=n.players[num(t.getAttribute('data-adj'))];p2.adj=t.value===''?0:num(t.value);save();refreshCashNets();}
+});
+function refreshCashNets(){ // update nets and balance without re-rendering inputs (keeps the keyboard open)
+  var n=state.night;
+  Array.prototype.forEach.call(document.querySelectorAll('.cashrow'),function(row,i){var net=pNet(n.players[i]);var el=row.querySelector('.net');el.textContent=net==null?'—':money(net);el.className='net '+(net==null?'':(net>=0?'pos':'neg'));});
+  var tmp=document.createElement('div');tmp.innerHTML=views.cash();var nb=tmp.querySelector('.balance'),ob=document.querySelector('.balance');if(nb&&ob)ob.outerHTML=nb.outerHTML;
+  header();
+}
+
+(function mergeSeed(){var have={};state.history.forEach(function(x){have[String(x.id)]=1;});var added=0;SEED_HISTORY.forEach(function(s){if(!have[s.id]){state.history.push(JSON.parse(JSON.stringify(s)));added++;}});if(added)save();})();
+state.view=state.night?'table':'start';
+render();
+})();
+</script>
+</body>
+</html>
