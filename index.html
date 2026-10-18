@@ -270,7 +270,9 @@ views.hist=function(){
 function seasonTotals(y){var tot={},games={},wins={},best={},last='';
   state.history.forEach(function(n){if((n.date||'').slice(0,4)!==y)return;if(n.date>last)last=n.date;n.players.forEach(function(p){var net=pNet(p);if(net==null)return;tot[p.name]=(tot[p.name]||0)+net;games[p.name]=(games[p.name]||0)+1;if(net>0)wins[p.name]=(wins[p.name]||0)+1;if(best[p.name]==null||net>best[p.name])best[p.name]=net;});});
   return {tot:tot,games:games,wins:wins,best:best,last:last,names:Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];})};}
+var SHOW_SEASON=false;
 function seasonCard(){
+  if(!SHOW_SEASON)return '';
   var years={};state.history.forEach(function(n){years[(n.date||'').slice(0,4)]=1;});var ylist=Object.keys(years).sort().reverse();
   var y=state._year||ylist[0]||'';var s=seasonTotals(y);if(!s.names.length)return'';
   var chips=ylist.length>1?'<div class="chips" style="margin-bottom:10px">'+ylist.map(function(v){return '<span class="chip'+(v===y?' on':'')+'" data-year="'+v+'">'+v+'</span>';}).join('')+'</div>':'';
