@@ -101,7 +101,7 @@
 <main id="main"></main>
 
 <nav id="nav">
-  <button data-v="start"><span class="ic">♠️</span>Night</button>
+  <button data-v="start"><span class="ic">♠️</span>Table</button>
   <button data-v="table"><span class="ic">💵</span>Buy-ins</button>
   <button data-v="cash"><span class="ic">🧮</span>Cash out</button>
   <button data-v="settle"><span class="ic">✅</span>Settle</button>
@@ -161,27 +161,27 @@ var views={};
 views.start=function(){
   var n=state.night;
   if(n){
-    return '<div class="card"><h2>Tonight is open</h2><p>'+esc(prettyDate(n.date))+(n.host?' at '+esc(n.host)+"'s":'')+'. Standard buy-in '+money(n.buyin)+'. '+n.players.length+' players.</p>'+
+    return '<div class="card"><h2>The table is open</h2><p>'+esc(prettyDate(n.date))+(n.host?' at '+esc(n.host)+"'s":'')+'. Standard buy-in '+money(n.buyin)+'. '+n.players.length+' players.</p>'+
     '<div class="row" style="margin-top:10px"><button class="btn" data-go="table">Go to buy-ins</button></div>'+
-    '<div class="row" style="margin-top:10px"><button class="btn sec" data-act="addPlayers">Add players</button><button class="btn sec" data-act="editNight">Edit night</button></div>'+
-    '<div class="row" style="margin-top:10px"><button class="btn warn" data-act="closeNight">Finish night and save to history</button></div>'+
-    '<p class="sticky-note">Finish when everyone has cashed out. The night moves to History and a new one can start.</p></div>';
+    '<div class="row" style="margin-top:10px"><button class="btn sec" data-act="addPlayers">Add players</button><button class="btn sec" data-act="editNight">Edit table</button></div>'+
+    '<div class="row" style="margin-top:10px"><button class="btn warn" data-act="closeNight">Close the table and save to history</button></div>'+
+    '<p class="sticky-note">Close the table when everyone has cashed out. It moves to History and a new table can open.</p></div>';
   }
   var sel=state._sel||{};
   var chips=state.roster.map(function(r){return '<span class="chip'+(sel[r]?' on':'')+'" data-chip="'+esc(r)+'">'+esc(r)+'</span>';}).join('');
-  return '<div class="card"><h2>Start a night</h2>'+
+  return '<div class="card"><h2>Open a table</h2>'+
   '<label>Date</label><input type="date" id="fDate" value="'+(state._date||todayISO())+'">'+
   '<label>Host</label><input type="text" id="fHost" placeholder="Who is hosting" value="'+esc(state._host||'')+'">'+
   '<label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="fBuy" value="'+(state._buy||50)+'">'+
-  '<label>Tap who is playing</label><div class="chips">'+chips+'</div>'+
+  '<label>Tap who is at the table</label><div class="chips">'+chips+'</div>'+
   '<div class="row" style="margin-top:12px"><input type="text" id="fNew" placeholder="Add a new name"><button class="btn sm sec" data-act="addName" style="flex:0 0 auto">Add</button></div>'+
-  '<div style="margin-top:14px"><button class="btn" data-act="startNight">Start night</button></div>'+
+  '<div style="margin-top:14px"><button class="btn" data-act="startNight">Open the table</button></div>'+
   (store.ok()?'':'<p class="sticky-note">This browser is not keeping data between visits. Export before you close the page.</p>')+
   '</div>';
 };
 views.table=function(){
   var n=state.night;if(!n)return noNight();
-  if(!n.players.length)return '<div class="card"><div class="empty">No players yet.</div><button class="btn sec" data-act="addPlayers">Add players</button></div>';
+  if(!n.players.length)return '<div class="card"><div class="empty">Nobody at the table yet.</div><button class="btn sec" data-act="addPlayers">Add players</button></div>';
   var rows=n.players.map(function(p,i){
     var b=pBuyin(p);var odd=p.buyins.some(function(x){return x!==n.buyin;});
     return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+money(b)+(odd?' (custom amounts)':'')+'</span></div>'+
@@ -194,7 +194,7 @@ views.table=function(){
 };
 views.cash=function(){
   var n=state.night;if(!n)return noNight();
-  if(!n.players.length)return '<div class="card"><div class="empty">No players yet.</div></div>';
+  if(!n.players.length)return '<div class="card"><div class="empty">Nobody at the table yet.</div></div>';
   var t=totals(n);
   var rows=n.players.map(function(p,i){
     var net=pNet(p);
@@ -238,25 +238,25 @@ views.season=function(){
   var tot={},games={},wins={},best={},last='';
   all.forEach(function(n){if((n.date||'').slice(0,4)!==y)return;if(n.date>last)last=n.date;n.players.forEach(function(p){var net=pNet(p);if(net==null)return;tot[p.name]=(tot[p.name]||0)+net;games[p.name]=(games[p.name]||0)+1;if(net>0)wins[p.name]=(wins[p.name]||0)+1;if(best[p.name]==null||net>best[p.name])best[p.name]=net;});});
   var names=Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];});
-  if(!names.length)return '<div class="card"><div class="empty">No finished nights yet for '+esc(y)+'.</div></div>';
+  if(!names.length)return '<div class="card"><div class="empty">No closed tables yet for '+esc(y)+'.</div></div>';
   var chips=ylist.length>1?'<div class="chips" style="margin-bottom:10px">'+ylist.map(function(v){return '<span class="chip'+(v===y?' on':'')+'" data-year="'+v+'">'+v+'</span>';}).join('')+'</div>':'';
-  var rows=names.map(function(nm,i){var v=tot[nm];return '<div class="prow"><div class="cnt" style="min-width:28px;font-size:15px;color:var(--mute)">'+(i+1)+'</div><div class="name"><b>'+esc(nm)+'</b><span>'+games[nm]+' night'+(games[nm]==1?'':'s')+' · won '+(wins[nm]||0)+' · best '+money(best[nm])+'</span></div><div class="net '+(v>=0?'pos':'neg')+'">'+money(v)+'</div></div>';}).join('');
+  var rows=names.map(function(nm,i){var v=tot[nm];return '<div class="prow"><div class="cnt" style="min-width:28px;font-size:15px;color:var(--mute)">'+(i+1)+'</div><div class="name"><b>'+esc(nm)+'</b><span>'+games[nm]+' table'+(games[nm]==1?'':'s')+' · won '+(wins[nm]||0)+' · best '+money(best[nm])+'</span></div><div class="net '+(v>=0?'pos':'neg')+'">'+money(v)+'</div></div>';}).join('');
   var sum=names.reduce(function(a,k){return a+tot[k];},0);
-  return '<div class="card"><h2>Season '+esc(y)+'</h2><p class="hint">Who is where so far. Total of every night\'s net, winners first. Through '+esc(prettyDate(last))+'.</p>'+chips+rows+
-  '<p class="sticky-note">All players together: '+money(sum)+'. A number other than zero is the sum of nights that did not balance plus kitty money.</p></div>'+
+  return '<div class="card"><h2>Season '+esc(y)+'</h2><p class="hint">Who is where so far. Total of every table\'s net, winners first. Through '+esc(prettyDate(last))+'.</p>'+chips+rows+
+  '<p class="sticky-note">All players together: '+money(sum)+'. A number other than zero is the sum of tables that did not balance plus kitty money.</p></div>'+
   '<div class="card"><button class="btn sec" data-act="exportSeason">Copy season table for the sheet</button></div>';
 };
 views.hist=function(){
   var h=state.history;
-  if(!h.length)return '<div class="card"><div class="empty">No finished nights yet. Finish a night from the Night tab and it will appear here.</div></div>';
+  if(!h.length)return '<div class="card"><div class="empty">No closed tables yet. Close a table from the Table tab and it will appear here.</div></div>';
   var rows=h.slice().sort(function(a,b){return (b.date||'')<(a.date||'')?-1:((b.date||'')>(a.date||'')?1:0);}).map(function(n){
     var t=totals(n);var id=n.id;var diff=Math.round((t.cash-t.buy)*100)/100;
     return '<div class="hist" data-open="'+id+'"><div><b>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</b><span>'+n.players.length+' players · '+money(t.buy)+' in · '+money(t.cash)+' out'+(Math.abs(diff)>0.005?' · off '+money(diff):'')+(n.fromSheet?' · from the sheet':'')+'</span></div><span>›</span></div>';
   }).join('');
-  return '<div class="card"><h2>History</h2><p class="hint">Kept on this phone. The 2026 games from the Google Sheet are loaded. Open a night to see every player\'s net.</p>'+rows+'</div>'+
-  '<div class="card"><button class="btn sec" data-act="exportAll">Copy all nights for the sheet</button><div style="margin-top:10px"><button class="btn sec" data-act="lockApp">Lock the app on this phone</button></div></div>';
+  return '<div class="card"><h2>History</h2><p class="hint">Kept on this phone. The 2026 games from the Google Sheet are loaded. Open a table to see every player\'s net.</p>'+rows+'</div>'+
+  '<div class="card"><button class="btn sec" data-act="exportAll">Copy all tables for the sheet</button><div style="margin-top:10px"><button class="btn sec" data-act="lockApp">Lock the app on this phone</button></div></div>';
 };
-function noNight(){return '<div class="card"><div class="empty">No night open.</div><button class="btn" data-go="start">Start a night</button></div>';}
+function noNight(){return '<div class="card"><div class="empty">No table open.</div><button class="btn" data-go="start">Open a table</button></div>';}
 
 // ---------- export ----------
 function exportText(n){
@@ -266,7 +266,7 @@ function exportText(n){
   return lines.join('\n');
 }
 function summaryText(n){
-  var t=totals(n);var out=['Poker night '+prettyDate(n.date)+(n.host?' at '+n.host+"'s":'')];
+  var t=totals(n);var out=['Poker table '+prettyDate(n.date)+(n.host?' at '+n.host+"'s":'')];
   n.players.slice().sort(function(a,b){return (pNet(b)||0)-(pNet(a)||0);}).forEach(function(p){var net=pNet(p);out.push(p.name+': '+(net==null?'not cashed out':money(net))+(p.settled?' (settled)':''));});
   out.push('In '+money(t.buy)+', out '+money(t.cash)+(Math.abs(t.cash-t.buy)>0.005?', off by '+money(t.cash-t.buy):', balanced'));
   return out.join('\n');
@@ -322,15 +322,15 @@ function addPlayersSheet(){
 }
 function editNight(){
   var n=state.night;
-  openSheet('<h3>Edit night</h3><label>Date</label><input type="date" id="eDate" value="'+n.date+'"><label>Host</label><input type="text" id="eHost" value="'+esc(n.host)+'"><label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="eBuy" value="'+n.buyin+'"><div class="row" style="margin-top:12px"><button class="btn" id="eOk">Save</button><button class="btn sec" id="closeSheet">Cancel</button></div><div style="margin-top:14px"><button class="btn warn" id="eDel">Delete this night</button></div>');
+  openSheet('<h3>Edit the table</h3><label>Date</label><input type="date" id="eDate" value="'+n.date+'"><label>Host</label><input type="text" id="eHost" value="'+esc(n.host)+'"><label>Standard buy-in ($)</label><input type="number" inputmode="decimal" id="eBuy" value="'+n.buyin+'"><div class="row" style="margin-top:12px"><button class="btn" id="eOk">Save</button><button class="btn sec" id="closeSheet">Cancel</button></div><div style="margin-top:14px"><button class="btn warn" id="eDel">Delete this table</button></div>');
   document.getElementById('eOk').onclick=function(){n.date=document.getElementById('eDate').value||n.date;n.host=document.getElementById('eHost').value.trim();n.buyin=num(document.getElementById('eBuy').value)||n.buyin;save();closeSheet();render();};
-  document.getElementById('eDel').onclick=function(){if(confirm('Delete tonight and all its buy-ins?')){state.night=null;save();closeSheet();go('start');}};
+  document.getElementById('eDel').onclick=function(){if(confirm('Delete this table and all its buy-ins?')){state.night=null;save();closeSheet();go('start');}};
 }
 function closeNight(){
   var n=state.night;var t=totals(n);var pending=n.players.length-t.cashed;
-  var msg=pending?pending+' player'+(pending>1?'s have':' has')+' no cash-out entered. Finish anyway?':'Finish the night and move it to History?';
+  var msg=pending?pending+' player'+(pending>1?'s have':' has')+' no cash-out entered. Close anyway?':'Close the table and move it to History?';
   if(!confirm(msg))return;
-  state.history.push(n);state.night=null;save();go('hist');toast('Saved to history');
+  state.history.push(n);state.night=null;save();go('hist');toast('Table closed and saved');
 }
 function openHist(id){
   var n=null;state.history.forEach(function(x){if(String(x.id)===String(id))n=x;});if(!n)return;
@@ -338,8 +338,8 @@ function openHist(id){
   var rows=n.players.slice().sort(function(a,b){return (pNet(b)||0)-(pNet(a)||0);}).map(function(p){var net=pNet(p);return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+p.buyins.length+' × in '+money(pBuyin(p))+' · out '+(p.cashout==null?'—':money(p.cashout))+'</span></div><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';}).join('');
   openSheet('<h3>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</h3><p class="hint">In '+money(t.buy)+' · out '+money(t.cash)+'</p><div style="max-height:45vh;overflow:auto">'+rows+'</div><div class="row" style="margin-top:12px"><button class="btn" id="hExp">Copy for the sheet</button><button class="btn sec" id="hReopen">Reopen</button></div><div class="row" style="margin-top:10px"><button class="btn warn" id="hDel">Delete</button><button class="btn sec" id="closeSheet">Close</button></div>');
   document.getElementById('hExp').onclick=function(){showText('Rows for the sheet',exportText(n),'Paste into a new tab. Columns match: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');};
-  document.getElementById('hReopen').onclick=function(){if(state.night&&!confirm('A night is already open. Replace it with this one?'))return;state.history=state.history.filter(function(x){return x!==n;});state.night=n;save();closeSheet();go('table');};
-  document.getElementById('hDel').onclick=function(){if(confirm('Delete this night from history?')){state.history=state.history.filter(function(x){return x!==n;});save();closeSheet();render();}};
+  document.getElementById('hReopen').onclick=function(){if(state.night&&!confirm('A table is already open. Replace it with this one?'))return;state.history=state.history.filter(function(x){return x!==n;});state.night=n;save();closeSheet();go('table');};
+  document.getElementById('hDel').onclick=function(){if(confirm('Delete this table from history?')){state.history=state.history.filter(function(x){return x!==n;});save();closeSheet();render();}};
 }
 
 // ---------- events ----------
@@ -365,8 +365,8 @@ main.addEventListener('click',function(e){
   if(act==='undoLast')return undoLast();
   if(act==='export')return showText('Rows for the sheet',exportText(state.night),'Paste into a new tab. Columns match: Player, Buy-in Amount, Total #, Total Buy-in, Cash-out, Late Penalty, Haar/Jeet, Settled.');
   if(act==='exportSeason'){var all=state.history.slice();if(state.night&&totals(state.night).cashed>0)all.push(state.night);var y=state._year||'';var tot={};all.forEach(function(n){if(y&&(n.date||'').slice(0,4)!==y)return;n.players.forEach(function(p){var net=pNet(p);if(net!=null)tot[p.name]=(tot[p.name]||0)+net;});});var lines=['Khiladi\tTotal Haar/Jeet'];Object.keys(tot).sort(function(a,b){return tot[b]-tot[a];}).forEach(function(k){lines.push(k+'\t'+(Math.round(tot[k]*100)/100));});return showText('Season table',lines.join('\n'),'Same two columns as the Total Haar/Jeet tab.');}
-  if(act==='lockApp'){if(!confirm('Lock the app? The password will be needed again on this phone. Nights already saved here stay saved.'))return;store.set('pn_unlocked',false);return showLock();}
-  if(act==='exportAll'){var all=state.history.map(function(n){return prettyDate(n.date)+(n.host?' - '+n.host:'')+'\n'+exportText(n);}).join('\n\n');return showText('All nights',all,'One block per night, in the sheet\'s column order.');}
+  if(act==='lockApp'){if(!confirm('Lock the app? The password will be needed again on this phone. Tables already saved here stay saved.'))return;store.set('pn_unlocked',false);return showLock();}
+  if(act==='exportAll'){var all=state.history.map(function(n){return prettyDate(n.date)+(n.host?' - '+n.host:'')+'\n'+exportText(n);}).join('\n\n');return showText('All tables',all,'One block per table, in the sheet\'s column order.');}
   if(act==='share'){var txt=summaryText(state.night);if(navigator.share){navigator.share({text:txt}).catch(function(){});}else showText('Summary',txt,'Copy and paste into the group chat.');}
 });
 // long press on + for a custom amount
