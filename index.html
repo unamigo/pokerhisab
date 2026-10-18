@@ -383,7 +383,7 @@ main.addEventListener('input',function(e){var t=e.target,n=state.night;if(!n||!i
   if(t.hasAttribute('data-cash')){i=num(t.getAttribute('data-cash'));n.players[i].cashout=t.value===''?null:num(t.value);pendingUp['players/'+i+'/cashout']=n.players[i].cashout;}
   else if(t.hasAttribute('data-adj')){i=num(t.getAttribute('data-adj'));n.players[i].adj=t.value===''?0:num(t.value);pendingUp['players/'+i+'/adj']=n.players[i].adj;}
   else return;
-  refreshCashNets();clearTimeout(cashTimer);cashTimer=setTimeout(flushPending,300);});
+  refreshCashNets();var up={};up['players/'+i+'/cashout']=n.players[i].cashout;up['players/'+i+'/adj']=n.players[i].adj;liveUpdate(up);});
 main.addEventListener('focusout',function(e){if(e.target.hasAttribute&&(e.target.hasAttribute('data-cash')||e.target.hasAttribute('data-adj'))){clearTimeout(cashTimer);flushPending();}});
 function refreshCashNets(){var n=state.night;if(!n)return;Array.prototype.forEach.call(document.querySelectorAll('.cashrow'),function(row,i){if(!n.players[i])return;var net=pNet(n.players[i]);var el=row.querySelector('.net');if(el){el.textContent=net==null?'—':money(net);el.className='net '+(net==null?'':(net>=0?'pos':'neg'));}});
   var ob=document.querySelector('.balance');if(ob)ob.outerHTML=balanceBox(n);header();}
