@@ -111,6 +111,8 @@
   input[type=date]::-webkit-calendar-picker-indicator{opacity:.6}
   input,button,textarea{font-family:inherit}
   .row input{min-width:0}
+  .resetbar{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--mute);padding:2px 4px 10px}
+  .resetbar .btn.sm{padding:8px 12px;font-size:14px}
 </style>
 </head>
 <body>
@@ -226,7 +228,7 @@ function munimScreen(n){
   if(!n.players.length)return '<div class="card"><div class="empty">Nobody at the table yet.</div><button class="btn sec" data-act="addPlayers">Add players</button></div>';
   var rows=n.players.map(function(p,i){var b=pBuyin(p);var odd=p.buyins.some(function(x){return x!==n.buyin;});
     return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>'+money(b)+(odd?' (custom amounts)':'')+'</span></div><div class="cnt">'+p.buyins.length+'</div><button class="minus" data-undo="'+i+'" '+(p.buyins.length?'':'disabled')+'>−</button><button class="plus" data-buy="'+i+'">+</button></div>';}).join('');
-  return requestsBlock(n)+'<div class="card"><h2>Buy-ins <span class="pill">this phone is the Munim</span></h2><p class="hint">Host: '+esc(n.host||'not set')+' · Munim: '+esc(n.munim||'')+'</p><p class="hint">Tap + when you hand over one buy-in of '+money(n.buyin)+'. Press and hold + for another amount. − takes the last one back. Requests from players appear above.</p>'+rows+'</div>'+
+  return resetBar()+requestsBlock(n)+'<div class="card"><h2>Buy-ins <span class="pill">this phone is the Munim</span></h2><p class="hint">Host: '+esc(n.host||'not set')+' · Munim: '+esc(n.munim||'')+'</p><p class="hint">Tap + when you hand over one buy-in of '+money(n.buyin)+'. Press and hold + for another amount. − takes the last one back. Requests from players appear above.</p>'+rows+'</div>'+
   '<div class="row" style="margin-bottom:12px"><button class="btn sec" data-act="addPlayers">Add player</button><button class="btn sec" data-act="editNight">Edit table</button></div>'+
   '<button class="btn" data-act="gameDone">Game done, enter chips</button>';
 }
@@ -249,9 +251,14 @@ function watchCashout(n){
 function cashoutScreen(n){
   var rows=n.players.map(function(p,i){var net=pNet(p);
     return '<div class="cashrow"><div class="nm"><b>'+esc(p.name)+'</b><span>in '+money(pBuyin(p))+'</span></div><input type="number" inputmode="decimal" placeholder="chips" data-cash="'+i+'" value="'+(p.cashout==null?'':p.cashout)+'"><input type="number" inputmode="decimal" placeholder="0" data-adj="'+i+'" value="'+(p.adj?p.adj:'')+'"><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';}).join('');
-  return '<div class="card"><h2>Game done</h2><p class="hint">Type each player\'s end chips in dollars. Penalty is a late fee or any adjustment; it comes off that player\'s result. Everyone sees this fill in live.</p><div class="colhead"><div>Player</div><div>End chips</div><div>Penalty</div><div>Net</div></div>'+rows+balanceBox(n)+'</div>'+
+  return resetBar()+'<div class="card"><h2>Game done</h2><p class="hint">Type each player\'s end chips in dollars. Penalty is a late fee or any adjustment; it comes off that player\'s result. Everyone sees this fill in live.</p><div class="colhead"><div>Player</div><div>End chips</div><div>Penalty</div><div>Net</div></div>'+rows+balanceBox(n)+'</div>'+
   '<div class="row" style="margin-bottom:12px"><button class="btn sec" data-act="backToBuyins">Back to buy-ins</button></div><button class="btn" data-act="closeNight">Show final balances</button>';
 }
+function resetBar(){return '<div class="resetbar"><span>Wrong table or starting over?</span><button class="btn sm sec" data-act="resetTable">Reset table</button></div>';}
+function resetTable(){var n=state.night;if(!n)return;var t=totals(n);
+  if(!confirm('Reset the table?\n\nEverything entered so far ('+t.count+' buy-ins, '+money(t.buy)+') is saved to History first, marked as reset, so it can be viewed later. Then a fresh table can be opened.'))return;
+  n.players.forEach(function(p){if(p.cashout==null)p.cashout=0;});delete n.phase;delete n.requests;delete n.munimUid;n.reset=true;
+  histRef.child(n.id).set(JSON.parse(JSON.stringify(n))).then(function(){state.lastClosed=null;store.set('pn_lastClosed',null);return liveRef.remove();}).then(function(){toast('Saved to History and reset');});}
 function balanceBox(n){
   var t=totals(n);
   if(t.cashed===0)return '<div class="balance wait">Waiting for end chips.</div>';
@@ -275,7 +282,7 @@ views.hist=function(){
   if(!state.loaded)return '<div class="card"><div class="empty">Connecting…</div></div>';
   if(!h.length)return '<div class="card"><div class="empty">No closed tables yet.</div></div>';
   var rows=h.slice().sort(function(a,b){return (b.date||'')<(a.date||'')?-1:((b.date||'')>(a.date||'')?1:0);}).map(function(n){var t=totals(n),diff=Math.round((t.cash-t.buy)*100)/100;
-    return '<div class="hist" data-open="'+n.id+'"><div><b>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</b><span>'+n.players.length+' players · '+money(t.buy)+' in · '+money(t.cash)+' out'+(Math.abs(diff)>0.005?' · off '+money(diff):'')+'</span></div><span>›</span></div>';}).join('');
+    return '<div class="hist" data-open="'+n.id+'"><div><b>'+esc(prettyDate(n.date))+(n.host?' · '+esc(n.host):'')+'</b><span>'+n.players.length+' players · '+money(t.buy)+' in · '+money(t.cash)+' out'+(Math.abs(diff)>0.005?' · off '+money(diff):'')+(n.reset?' · reset, not finished':'')+'</span></div><span>›</span></div>';}).join('');
   return seasonCard()+'<div class="card"><h2>Tables</h2>'+rows+'</div>'+
   '<div class="card"><button class="btn sec" data-act="exportAll">Copy all tables for the sheet</button><div style="margin-top:10px"><button class="btn sec" data-act="lockApp">Lock the app on this phone</button></div></div>';
 };
@@ -383,6 +390,7 @@ main.addEventListener('click',function(e){
   if(act==='gameDone'){var tn=state.night;if(!totals(tn).count){toast('No buy-ins yet');return;}if(pendingRequests(tn).length&&!confirm('There are chip requests still waiting. Ignore them and count chips?'))return;liveUpdate({phase:'cashout'});return;}
   if(act==='backToBuyins'){liveUpdate({phase:'buyins'});return;}
   if(act==='closeNight')return closeNight();
+  if(act==='resetTable')return resetTable();
   if(act==='newTable'){state.lastClosed=null;store.set('pn_lastClosed',null);return render();}
   if(act==='changeMe'){state.me='';store.set('pn_me','');return render();}
   if(act==='imHost'){if(!state.me){toast('Pick your name first');return;}if(!confirm('Set '+state.me+' as tonight\'s host?'))return;liveUpdate({host:state.me});return;}
