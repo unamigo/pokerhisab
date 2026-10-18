@@ -226,7 +226,8 @@ function playerScreen(n){
 }
 function watchCashout(n){
   var rows=n.players.map(function(p){var net=pNet(p);return '<div class="prow"><div class="name"><b>'+esc(p.name)+'</b><span>in '+money(pBuyin(p))+(p.cashout==null?' · chips not entered yet':' · out '+money(p.cashout))+'</span></div><div class="net '+(net==null?'':(net>=0?'pos':'neg'))+'">'+(net==null?'—':money(net))+'</div></div>';}).join('');
-  return '<div class="card"><h2>Counting chips</h2><p class="hint">'+esc(n.munim||'The Munim')+' is entering end chips. Results fill in live.</p>'+rows+balanceBox(n)+'</div>';
+  return '<div class="card"><h2>Counting chips</h2><p class="hint">'+esc(n.munim||'The Munim')+' is entering end chips. Results fill in live.</p>'+rows+balanceBox(n)+'</div>'+
+  '<div class="card"><button class="btn sec" data-act="takeBook">Make this phone the Munim\'s</button></div>';
 }
 function cashoutScreen(n){
   var rows=n.players.map(function(p,i){var net=pNet(p);
